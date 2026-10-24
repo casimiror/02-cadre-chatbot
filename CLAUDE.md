@@ -15,6 +15,7 @@ Read the relevant document before changing that area. Keep it current in the sam
 | UI design: tokens, class naming, accessibility | `docs/design/frontend.md` |
 | Schema, migrations, RLS, local vs Supabase connections | `docs/database.md` |
 | Knowledge base content and retrieval | `docs/knowledge-base.md` |
+| Agent evaluation: dataset, `make eval`, judge | `docs/evaluation.md` |
 | Vercel + Supabase deploy | `docs/deployment.md` |
 | Git workflow, naming, tests, secrets | `docs/conventions.md` |
 
@@ -49,6 +50,7 @@ make migration m="add x"           # autogenerate; READ and tidy the file (docs/
 make migrate     # local db        make migrate-supabase      # Supabase, before deploying
 make migrate-check                 make migrate-roundtrip
 make check       # lint + tests + migration check + UI build
+make eval        # evaluate the real agent (LLM calls): local only, never in CI
 ```
 
 ## Rules that always apply

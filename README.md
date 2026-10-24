@@ -10,6 +10,7 @@ when it can't answer.
 
 - **FastAPI** serves `POST /api/chat` and the built React UI (`app.frontend()`), one container.
 - **LangGraph** agent: `input_guard -> agent <-> tools -> output_guard`, built with `AgentBuilder`.
+  Diagram and how to modify or create agents: [backend/app/agents/](backend/app/agents/README.md).
 - **Tools** (`ToolBuilder`): `search_knowledge`, `get_booking_link`, `request_strategy_call`, `escalate_to_human`.
 - **Knowledge base** (`backend/app/knowledge/`): Markdown split by `##`, ranked with BM25. Company,
   services, industries, case studies and FAQ come from cadre.ai (scraped 2026-10-24). The
@@ -18,6 +19,8 @@ when it can't answer.
 - **Data**: Supabase Postgres via SQLAlchemy DAOs + repositories; migrations with Alembic.
 - **Guardrails**: input length + prompt-injection heuristics; output blocks invented prices/URLs.
 - **Rate limiting**: slowapi per IP on `/api/chat`.
+- **Evaluation**: 60-case dataset, RAG metrics and an LLM judge on the real agent, a `/eval` page
+  and Langfuse experiments: [backend/app/evals/](backend/app/evals/README.md).
 - **Observability**: Langfuse, one trace per turn; session = conversation, user = anonymous visitor id
   (a UUID the browser keeps across conversations, so the Users view groups a visitor's sessions).
 
@@ -48,6 +51,7 @@ make down       # stop (make reset-db also wipes the local database)
 | `make psql` | SQL shell on the local Postgres |
 | `make check` | lint + tests + migration check + UI build (run before committing) |
 | `make ci` | what GitHub Actions runs on every PR: `check` plus migrations on a fresh db |
+| `make eval` | evaluate the agent on the 60-case dataset (RAG + LLM judge); results also at `/eval` with `EVAL_ENABLED=true`. Local only |
 | `make lock` | re-lock uv dependencies on the host |
 
 `make help` lists every target.
@@ -61,6 +65,30 @@ make down       # stop (make reset-db also wipes the local database)
   `sslmode=require` for Supabase hosts, prepared statements off on the transaction pooler (6543).
 - **Links**: `BOOKING_URL` (cadre.ai/contact), `CONTACT_EMAIL`, `WEBSITE_URL`, `PORTAL_URL` are the
   only links and contact details the bot may share.
+
+## Evaluate the agent locally
+
+The evaluator runs the real support agent on a 60-case dataset and scores the knowledge-base
+retrieval (RAG) and the replies (LLM judge). It is local only: it calls the LLM for every case,
+so it is never deployed and never runs in CI.
+
+1. In `.env`:
+   ```bash
+   EVAL_ENABLED=true                         # mounts /api/evals and the /eval page
+   LLM_API_KEY=...                           # OpenRouter key, used by the agent and the judge
+   EVAL_JUDGE_MODEL=google/gemini-3.8-flash  # default judge
+   LANGFUSE_PUBLIC_KEY=... / LANGFUSE_SECRET_KEY=... / LANGFUSE_BASE_URL=...   # optional: experiments in Langfuse
+   ```
+2. `make dev` and open http://localhost:5173/eval, then **Run evaluation** in the RAG or LLM
+   section. Or from the terminal: `make eval` (both), `make eval args="--mode retrieval"` (RAG only,
+   no LLM), `make eval args="--mode answer --category booking"`.
+3. Results: the page, `backend/eval_runs/*.json`, and, with Langfuse keys, an experiment on the
+   `cadre-support-eval` dataset.
+
+![The /eval page: LLM evaluation](docs/images/evals/eval-page-llm.png)
+
+How it works, the dataset, the metrics and screenshots of the Langfuse experiments:
+[backend/app/evals/README.md](backend/app/evals/README.md).
 
 ## Deploy
 

@@ -52,6 +52,13 @@ frameworks or CSS-in-JS.
   empty. `maxLength` matches the backend's `MAX_INPUT_CHARS`.
 - **Errors**: one line under the messages, `role="alert"`, plain language, no codes.
 
+## Eval page
+
+Wide layout (`.app--page`, max 1100 px) of white section cards. Status colours are tokens:
+`--good`, `--warn`, `--bad` (metric card borders and values, bar fills, score cells, pass/fail
+badges), never raw colours. Bars are plain CSS (`.bars`); expandable rows use a button with
+`aria-expanded`, and the progress bar has `role="progressbar"`.
+
 ## Accessibility
 
 - The message list is `aria-live="polite"` so screen readers announce replies.

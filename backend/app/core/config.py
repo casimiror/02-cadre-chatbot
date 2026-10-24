@@ -36,6 +36,12 @@ class Settings(BaseSettings):
         default="https://cloud.langfuse.com",
         validation_alias=AliasChoices("LANGFUSE_BASE_URL", "LANGFUSE_HOST"),
     )
+    # Langfuse environment of every trace. Vercel sets VERCEL_ENV (production / preview), so the
+    # online judge in Langfuse can sample only production traffic.
+    langfuse_environment: str = Field(
+        default="development",
+        validation_alias=AliasChoices("LANGFUSE_TRACING_ENVIRONMENT", "VERCEL_ENV"),
+    )
 
     rate_limit_chat: str = "10/minute"
     # Votes are cheap (no LLM call) but still writes: looser limit than chat.
@@ -48,6 +54,11 @@ class Settings(BaseSettings):
     booking_url: str = "https://cadre.ai/contact"
     contact_email: str = "hello@gocadre.ai"
     portal_url: str = ""
+
+    # Offline evaluation (app/evals). Off everywhere except local runs: it calls the LLM for every
+    # case, so it must never be reachable on the deployed app.
+    eval_enabled: bool = False
+    eval_judge_model: str = "google/gemini-3.8-flash"
 
     # Built React app. The Docker image and the Vercel build both put it in backend/static.
     frontend_dist: Path = BACKEND_DIR / "static"

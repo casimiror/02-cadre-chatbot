@@ -15,6 +15,9 @@ frontend/src/
     types.ts                 # mirrors backend app/schemas/chat.py
 ```
 
+`features/eval/` is the `/eval` page (see `docs/evaluation.md`). `App.tsx` picks the page from
+`window.location.pathname`; there is no router dependency.
+
 A new capability gets its own `features/<name>/` with the same sub-folders. Features don't import
 each other's internals; shared code goes to `src/shared/` when a second feature needs it.
 

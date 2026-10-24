@@ -3,7 +3,7 @@
   "functions": {
     "app/main.py": {
       "maxDuration": 60,
-      "excludeFiles": "{tests/**,.venv/**,.pytest_cache/**,.ruff_cache/**,vercel-build.sh}"
+      "excludeFiles": "{tests/**,eval_runs/**,.venv/**,.pytest_cache/**,.ruff_cache/**,vercel-build.sh}"
     }
   }
 }

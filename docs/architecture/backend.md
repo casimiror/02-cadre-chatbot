@@ -44,6 +44,8 @@ Wiring of concrete classes happens **only** in `app/api/deps.py`.
 
 Limits: `RATE_LIMIT_CHAT` (10/min) and `RATE_LIMIT_FEEDBACK` (30/min) per client IP.
 
+`/api/evals/*` exists only with `EVAL_ENABLED=true` (local): see `docs/evaluation.md`.
+
 ## A chat turn
 
 1. `POST /api/chat` (`routes/chat.py`): slowapi limits per client IP, `ChatRequest` validates
@@ -59,6 +61,8 @@ Limits: `RATE_LIMIT_CHAT` (10/min) and `RATE_LIMIT_FEEDBACK` (30/min) per client
 5. User and assistant messages are persisted **after** the turn succeeds (no half turns); the
    assistant message's id is returned as `message_id` so the UI can attach feedback to it.
 6. The route schedules `observability.flush` as a background task (serverless instances can freeze).
+
+Graph diagram and how to modify or create agents: [`backend/app/agents/README.md`](../../backend/app/agents/README.md).
 
 ## Tools
 
@@ -103,5 +107,9 @@ Supabase integration), `LANGFUSE_BASE_URL` to `LANGFUSE_HOST`, and `VERCEL=1` se
 ## Observability
 
 Langfuse, one trace per turn (`app/core/observability.py`). The `Langfuse(...)` client is created
-once in the lifespan; `CallbackHandler()` reuses it. The root span records the user text, the reply
-and `blocked_by`. `visitor_id` is an anonymous UUID: never send emails or names to Langfuse.
+once in the lifespan; `CallbackHandler()` reuses it. The root span `chat-turn` records the user
+text, the reply and, as metadata, `blocked_by`, `tools_called` and `context` (the turn's tool
+results), which the online judge in Langfuse reads (`docs/evaluation.md`). Traces carry the
+Langfuse environment `LANGFUSE_TRACING_ENVIRONMENT`, or Vercel's `VERCEL_ENV` (`production`,
+`preview`), else `development`. `visitor_id` is an anonymous UUID: never send emails or names to
+Langfuse.
