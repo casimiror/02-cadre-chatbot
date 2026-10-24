@@ -1,17 +1,24 @@
 # Evaluation
 
-Offline evaluation of the support agent, adapted from the RAG course evaluator (retrieval MRR /
-nDCG / keyword coverage plus an LLM judge). Code in `backend/app/evals/`. It runs locally only:
-every case calls the LLM, so it is never mounted on the deployed app.
+Offline evaluation of the support agent, adapted from the RAG course evaluator. Code in
+`backend/app/evals/`. It runs locally only: it calls the LLM, so it is never mounted on the
+deployed app. Two separate evaluations, as in the course:
+
+| Evaluation | What it tests | Metrics | Cost |
+| --- | --- | --- | --- |
+| **RAG** (`retrieval`) | the knowledge-base tool: `search_knowledge`'s top 3 for each question | MRR, nDCG, keyword coverage, source hit | no LLM, seconds |
+| **LLM** (`answer`) | the real agent answering, scored by checks and a judge | pass rate, judge scores 1-5, the agent's own retrieval | 2-4 LLM calls per case |
 
 ```bash
-make eval                                   # all 60 cases, results to Langfuse + JSON
-make eval args="--category guardrail"       # one category (repeatable)
+make eval                                   # both, all cases, results to Langfuse + JSON
+make eval args="--mode retrieval"           # only the RAG evaluation
+make eval args="--mode answer --category guardrail"   # LLM evaluation of one category
 make eval args="--id booking-03 --no-langfuse"
 ```
 
-Each run writes `backend/eval_runs/<run-id>.json` (gitignored) and, with Langfuse configured, an
-experiment run on the `cadre-support-eval` dataset, with one trace and its scores per case.
+Each run writes `backend/eval_runs/<kind>-<timestamp>.json` (gitignored) and, with Langfuse
+configured, an experiment run on the `cadre-support-eval` dataset, with one trace and its scores
+per case.
 
 ## Dataset
 
@@ -38,17 +45,25 @@ files), `reference_answer`, `expected_behavior` (`answer`, `decline`, `block`, `
 `scenario` (1-6) it covers. `tests/test_eval_dataset.py` checks that every keyword exists in its
 source file, so editing the knowledge base can't silently break the dataset.
 
-## How a case is scored
+## RAG evaluation
+
+Only cases with `keywords` (42 of 60: behaviour cases have nothing to retrieve). For each, the
+question goes through `KnowledgeBase.search` exactly as the tool runs it (top 3), and each keyword
+is looked for in the returned sections:
+
+- **MRR**: 1 / rank of the first section containing the keyword, averaged over keywords.
+- **nDCG**: binary relevance, ideal ranking puts every section with the keyword first.
+- **Keyword coverage**: share of keywords found in the top 3.
+- **Source hit**: an expected knowledge file is among the results.
+
+## LLM evaluation
 
 1. **Agent**: the real support agent (`build_support_agent`: same prompt, tools, guardrails and
    model as production) answers the question. Tools that write to the database get in-memory
    repositories, so an evaluation never touches Postgres.
-2. **Retrieval**, measured twice:
-   - *index*: `KnowledgeBase.search(question)`, which tests the BM25 index and the content;
-   - *agent*: the sections its own `search_knowledge` calls returned, which tests whether the agent
-     searches well.
-
-   Metrics: MRR, nDCG, keyword coverage, and whether an expected source was retrieved.
+2. **Agent retrieval**: the same metrics on what the agent's own `search_knowledge` calls returned
+   (it writes its own English keywords), which tests whether the agent searches well. Compare it
+   with the RAG evaluation to tell an index problem from a query problem.
 3. **Deterministic checks**: no error; blocked when it should be (and not when it should answer);
    expected tools called; no forbidden substring in the reply.
 4. **Judge** (`EVAL_JUDGE_MODEL`, default `google/gemini-3.8-flash`, temperature 0): rubric in

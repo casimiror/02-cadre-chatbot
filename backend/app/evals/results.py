@@ -1,10 +1,12 @@
 """What one evaluation run produces. Serialized as one JSON file per run."""
 
 from collections import defaultdict
+from collections.abc import Callable, Sequence
 from datetime import datetime
 from statistics import mean
+from typing import Annotated, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.evals.agent_run import ToolCall
 from app.evals.checks import Check
@@ -17,12 +19,20 @@ from app.evals.retrieval import RetrievalMetrics
 PASS_SCORE = 4
 
 
+class RetrievalCaseResult(BaseModel):
+    """RAG evaluation: the knowledge-base tool's search on the question, no LLM."""
+
+    case: EvalCase
+    retrieval: RetrievalMetrics
+
+
 class CaseResult(BaseModel):
+    """LLM evaluation: the real agent answers and the judge scores the reply."""
+
     case: EvalCase
     reply: str
     blocked_by: str | None
     tool_calls: list[ToolCall]
-    index_retrieval: RetrievalMetrics | None  # kb.search(question): the index alone
     agent_retrieval: RetrievalMetrics | None  # what the agent's own searches returned
     checks: list[Check]
     judge: AnswerEval | None
@@ -39,26 +49,47 @@ class CaseResult(BaseModel):
         return checks_ok and judge_ok
 
 
-class Summary(BaseModel):
+class RetrievalSummary(BaseModel):
+    cases: int
+    mrr: float
+    ndcg: float
+    keyword_coverage: float  # 0..1
+    source_hit: float  # share of cases where an expected source was retrieved
+
+
+class AnswerSummary(BaseModel):
     cases: int
     pass_rate: float
     checks_pass_rate: float
-    index_retrieval: dict[str, float]  # mrr, ndcg, keyword_coverage, source_hit
-    agent_retrieval: dict[str, float]
     judge: dict[str, float]  # mean of each 1-5 score
+    agent_retrieval: dict[str, float]  # mrr, ndcg, keyword_coverage, source_hit
     latency_s: float
 
 
-class EvalRun(BaseModel):
+class _Run(BaseModel):
     id: str
     started_at: datetime
     finished_at: datetime
+    langfuse_url: str | None = None
+
+
+class RetrievalRun(_Run):
+    kind: Literal["retrieval"] = "retrieval"
+    summary: RetrievalSummary
+    by_category: dict[str, RetrievalSummary]
+    results: list[RetrievalCaseResult]
+
+
+class AnswerRun(_Run):
+    kind: Literal["answer"] = "answer"
     bot_model: str
     judge_model: str
-    summary: Summary
-    by_category: dict[str, Summary]
+    summary: AnswerSummary
+    by_category: dict[str, AnswerSummary]
     results: list[CaseResult]
-    langfuse_url: str | None = None
+
+
+EvalRun = Annotated[RetrievalRun | AnswerRun, Field(discriminator="kind")]
 
 
 def _retrieval_means(metrics: list[RetrievalMetrics | None]) -> dict[str, float]:
@@ -73,22 +104,28 @@ def _retrieval_means(metrics: list[RetrievalMetrics | None]) -> dict[str, float]
     }
 
 
-def summarize(results: list[CaseResult]) -> Summary:
+def summarize_retrieval(results: Sequence[RetrievalCaseResult]) -> RetrievalSummary:
+    means = _retrieval_means([r.retrieval for r in results])
+    return RetrievalSummary(cases=len(results), **means)
+
+
+def summarize_answers(results: Sequence[CaseResult]) -> AnswerSummary:
     judged = [r.judge for r in results if r.judge]
     checks = [c.passed for r in results for c in r.checks]
-    return Summary(
+    return AnswerSummary(
         cases=len(results),
         pass_rate=mean(1.0 if r.passed else 0.0 for r in results),
         checks_pass_rate=mean(1.0 if ok else 0.0 for ok in checks) if checks else 0.0,
-        index_retrieval=_retrieval_means([r.index_retrieval for r in results]),
-        agent_retrieval=_retrieval_means([r.agent_retrieval for r in results]),
         judge={k: mean(j.scores[k] for j in judged) for k in judged[0].scores} if judged else {},
+        agent_retrieval=_retrieval_means([r.agent_retrieval for r in results]),
         latency_s=mean(r.latency_s for r in results),
     )
 
 
-def summarize_by_category(results: list[CaseResult]) -> dict[str, Summary]:
-    groups: dict[str, list[CaseResult]] = defaultdict(list)
+def by_category[R: (RetrievalCaseResult, CaseResult), S](
+    results: Sequence[R], summarize: Callable[[list[R]], S]
+) -> dict[str, S]:
+    groups: dict[str, list[R]] = defaultdict(list)
     for r in results:
         groups[r.case.category].append(r)
     return {category: summarize(group) for category, group in groups.items()}

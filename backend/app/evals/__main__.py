@@ -7,17 +7,41 @@ from typing import get_args
 from app.core import observability
 from app.core.config import get_settings
 from app.evals.dataset import Category, load_dataset
-from app.evals.results import CaseResult
+from app.evals.results import AnswerRun, RetrievalRun
 from app.evals.runner import Evaluator, save_run
 
 
-def _progress(done: int, total: int, result: CaseResult) -> None:
-    mark = "PASS" if result.passed else "FAIL"
-    print(f"[{done:>2}/{total}] {mark} {result.case.id}", flush=True)
+def _progress(done: int, total: int) -> None:
+    print(f"\r  {done}/{total}", end="" if done < total else "\n", flush=True)
+
+
+def _fmt(metrics: dict[str, float]) -> str:
+    return ", ".join(f"{k} {v:.2f}" for k, v in metrics.items())
+
+
+def _report(run: RetrievalRun | AnswerRun) -> None:
+    s = run.summary
+    if isinstance(run, RetrievalRun):
+        print(f"RAG ({s.cases} cases): mrr {s.mrr:.2f}, ndcg {s.ndcg:.2f}, ", end="")
+        print(f"keyword coverage {s.keyword_coverage:.0%}, source hit {s.source_hit:.0%}")
+    else:
+        print(f"LLM ({s.cases} cases): pass rate {s.pass_rate:.0%}, judge {_fmt(s.judge)}")
+        failed = [r.case.id for r in run.results if not r.passed]
+        if failed:
+            print(f"  failed: {', '.join(failed)}")
+    print(f"  saved eval_runs/{run.id}.json")
+    if run.langfuse_url:
+        print(f"  {run.langfuse_url}")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Evaluate the support agent on the dataset.")
+    parser.add_argument(
+        "--mode",
+        choices=["retrieval", "answer", "all"],
+        default="all",
+        help="retrieval: the knowledge-base tool, no LLM; answer: agent + judge",
+    )
     parser.add_argument("--category", action="append", choices=get_args(Category))
     parser.add_argument("--id", action="append", dest="ids", help="case id, repeatable")
     parser.add_argument("--limit", type=int)
@@ -38,18 +62,16 @@ def main() -> int:
     settings = get_settings()
     observability.init_observability(settings)
     evaluator = Evaluator(settings, use_langfuse=not args.no_langfuse)
-    run = evaluator.run(cases, concurrency=args.concurrency, on_progress=_progress)
-    path = save_run(run)
-
-    s = run.summary
-    print(f"\nrun {run.id}: {s.cases} cases, pass rate {s.pass_rate:.0%}")
-    print(f"judge: {', '.join(f'{k} {v:.2f}' for k, v in s.judge.items())}")
-    for label, metrics in (("index", s.index_retrieval), ("agent", s.agent_retrieval)):
-        if metrics:
-            print(f"{label} retrieval: {', '.join(f'{k} {v:.2f}' for k, v in metrics.items())}")
-    print(f"saved {path.relative_to(path.parents[1])}")
-    if run.langfuse_url:
-        print(f"langfuse: {run.langfuse_url}")
+    if args.mode in ("retrieval", "all"):
+        print("RAG evaluation (knowledge-base search)")
+        run = evaluator.run_retrieval(cases, on_progress=_progress)
+        save_run(run)
+        _report(run)
+    if args.mode in ("answer", "all"):
+        print("LLM evaluation (agent + judge)")
+        run = evaluator.run_answers(cases, concurrency=args.concurrency, on_progress=_progress)
+        save_run(run)
+        _report(run)
     return 0
 
 
