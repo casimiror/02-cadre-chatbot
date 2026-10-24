@@ -50,8 +50,37 @@ Evaluate 2 models on the scenario set before fixing the choice.
 5. **Guardrails + rate limit** — unit tests for each guardrail; 429 path verified.
 6. **Chat API + UI** — `POST /api/chat`, `useChat` hook, error/limit states in the UI.
 7. **Observability** — Langfuse traces with session/user ids; check one trace per scenario.
-8. **Scenario evals** — `tests/scenarios/` run the 6 scenarios against the real graph; fix prompt/KB.
+8. **Scenario evals** — offline evaluator on the real agent (local only, never in CI) plus an online judge in Langfuse; see [Evaluation](#evaluation).
 9. **Polish + redeploy** — README, known issues, what I'd do next.
+
+## Evaluation
+
+The 6 scenarios are covered by a 60-case dataset (`backend/app/evals/dataset.jsonl`, 5 cases per
+category; each case records the scenario it covers):
+
+| Scenario | Cases that test it |
+|---|---|
+| 1. What Cadre does / industries | `direct_fact`, `spanning`, `relationship` |
+| 2. Book a call | `booking` (explain the contact page, send the request with the user's details) |
+| 3. Portal access | `direct_fact` |
+| 4. AI Maturity Index | `direct_fact`, `spanning`, `multi_question` |
+| 5. LLM selection and data security | `spanning`, `multi_question` |
+| 6. Can't answer | `escalation` (unknown facts, billing, contracts) |
+
+The rest test knowledge-base depth (the RAG course's `temporal`, `comparative`, `numerical`,
+`holistic`…) and safety: `guardrail` (prompt injection, prices, invented links), `off_topic`,
+`multi_question` (one in Spanish).
+
+What the evaluator shows (`/eval` page, `make eval`, and a Langfuse experiment per run):
+
+- **RAG evaluation** — the `search_knowledge` tool alone, no LLM: MRR, nDCG, keyword coverage and
+  source hit, by category and per case.
+- **LLM evaluation** — the real agent (same prompt, tools, guardrails and model as production,
+  in-memory repositories): deterministic checks (blocked or not, expected tools, forbidden
+  strings) plus an LLM judge scoring accuracy, completeness, relevance, groundedness and behaviour
+  (1-5). A case passes with every check and accuracy and behaviour >= 4.
+- **Online judge** — in production, Langfuse samples `chat-turn` traces and scores groundedness
+  and behaviour (0-1) from the turn's tool results.
 
 ## Risks
 

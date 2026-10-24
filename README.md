@@ -6,6 +6,8 @@ when it can't answer.
 
 **Live**: https://02-cadre-chatbot.vercel.app (Vercel + Supabase, see [Deploy](#deploy))
 
+**Repository**: https://github.com/casimiror/02-cadre-chatbot
+
 ## Architecture
 
 - **FastAPI** serves `POST /api/chat` and the built React UI (`app.frontend()`), one container.
@@ -86,6 +88,11 @@ so it is never deployed and never runs in CI.
    `cadre-support-eval` dataset.
 
 ![The /eval page: LLM evaluation](docs/images/evals/eval-page-llm.png)
+
+The dataset covers the brief's 6 scenarios plus guardrail, off-topic and multi-question cases
+(which category tests which scenario: [plan.md](plan.md#evaluation)). In production, an online
+LLM judge in Langfuse scores a sample of real turns for groundedness and behaviour
+([setup](docs/evaluation.md#online-evaluation-in-langfuse)).
 
 How it works, the dataset, the metrics and screenshots of the Langfuse experiments:
 [backend/app/evals/README.md](backend/app/evals/README.md).
