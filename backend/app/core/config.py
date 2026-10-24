@@ -18,8 +18,9 @@ class Settings(BaseSettings):
     llm_base_url: str | None = None
     llm_temperature: float = 0.2
 
-    # Supabase Postgres, SQLAlchemy URL: postgresql+psycopg://user:pass@host:5432/postgres
-    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/postgres"
+    # SQLAlchemy URL. Default: the docker compose `db` service; Supabase in deployed envs.
+    # Keep in sync with the credentials in docker-compose.yml.
+    database_url: str = "postgresql+psycopg://cadre_app:cadre_local_pw@db:5432/cadre_support"
 
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""

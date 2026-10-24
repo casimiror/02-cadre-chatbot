@@ -24,12 +24,36 @@ Details and conventions: [CLAUDE.md](CLAUDE.md). Scope, phases and trade-offs: [
 
 ## Run
 
+Everything runs in Docker (`docker compose`); the `Makefile` wraps the usual commands. Only
+`uv add` / `uv lock` run on the host.
+
 ```bash
-cp .env.example .env          # fill LLM_API_KEY, DATABASE_URL, LANGFUSE_*
-cd backend && uv sync && uv run alembic upgrade head
-docker compose up --build     # http://localhost:8000
+make env        # creates .env from .env.example: fill LLM_API_KEY (OpenRouter) and LANGFUSE_*
+make up         # prod-like: Postgres + migrations + app on http://localhost:8000
+make dev        # dev: API with reload (:8001) + Vite (http://localhost:5173), migrations on start
+make down       # stop (make reset-db also wipes the local database)
 ```
 
-Dev mode: `cd backend && uv run fastapi dev` + `cd frontend && npm install && npm run dev` (http://localhost:5173).
+| Command | What it does |
+| --- | --- |
+| `make test` | backend tests (pytest) |
+| `make lint` / `make format` | ruff check / autofix + format |
+| `make migrate` | `alembic upgrade head` on `DATABASE_URL` |
+| `make migration m="add x"` | autogenerate a revision from `app/db/models.py` (read it before committing) |
+| `make migrate-check` | fail if models changed without a migration |
+| `make migrate-roundtrip` | downgrade to base and upgrade again (local DB only) |
+| `make ui-build` | build the React app |
+| `make psql` | SQL shell on the local Postgres |
+| `make check` | lint + tests + migration check + UI build (run before committing) |
+| `make lock` | re-lock uv dependencies on the host |
 
-Tests: `cd backend && uv run pytest`.
+`make help` lists every target.
+
+### Configuration
+
+- **LLM**: OpenRouter, default model `google/gemini-3.5-flash-lite` (`LLM_PROVIDER`, `LLM_MODEL`).
+- **Database**: `DATABASE_URL` points to the compose `db` service (Postgres 17, a local stand-in
+  for Supabase). To use Supabase, set it to the session-pooler URL (port 5432) and run
+  `make migrate`.
+- **Links**: `BOOKING_URL` (cadre.ai/contact), `CONTACT_EMAIL`, `WEBSITE_URL`, `PORTAL_URL` are the
+  only links and contact details the bot may share.
