@@ -1,5 +1,8 @@
 # Evaluation
 
+Reference for changing the evaluator. For a walkthrough with screenshots of the `/eval` page and
+the Langfuse experiments, see [`backend/app/evals/README.md`](../backend/app/evals/README.md).
+
 Offline evaluation of the support agent, adapted from the RAG course evaluator. Code in
 `backend/app/evals/`. It runs locally only: it calls the LLM, so it is never mounted on the
 deployed app. Two separate evaluations, as in the course:
