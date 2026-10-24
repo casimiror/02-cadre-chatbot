@@ -127,14 +127,16 @@ Setup in Langfuse (once per project):
    (`provider/model`, e.g. `openai/...` or `google/gemini-3.8-flash`).
 2. **Evaluators → Set up evaluator → Create custom evaluator**, one per prompt: paste the prompt,
    the custom model from step 1 (it may differ from `EVAL_JUDGE_MODEL`, so online and offline
-   scores are not directly comparable), score name as in the table, and describe the score as a number
-   from 0 to 1 with a short reasoning.
+   scores are not directly comparable), score name as in the table, a number between 0 and 1, and under
+   *Advanced* replace Langfuse's placeholder instructions: reasoning `One or two sentences
+   explaining the score, citing the claim or rule involved.`, value `A number from 0 to 1: 1, 0.5
+   or 0 as described in the prompt.`
 3. Run it on **observations**, filtered by name `chat-turn` and environment `production`, on new
    data only, with a sampling rate (for example 20 %, to keep the LLM cost down).
-4. Map the variables: `input` → Input, `output` → Output, `tools` → **Tool Calls** (Langfuse
-   collects the turn's tool calls, with their arguments, on the root span), `context` → Metadata
-   › `context` (each tool result under the tool's name). Test the mapping on a `chat-turn`
-   observation, not an `experiment-item-run` from `make eval`.
+4. Map the variables: `input` → Input, `output` → Output, `tools` → **Metadata** with JSONPath
+   `$.tools_called`, `context` → **Metadata** with JSONPath `$.context`. Not *Tool Calls*: it is
+   empty on `chat-turn` (it is only filled on `make eval`'s experiment spans). Test the mapping on
+   a `chat-turn` observation that called a tool: the preview of `context` must show its result.
 
 Scores appear on each trace and in the Langfuse dashboards over time. Evaluation
 runs (`make eval`) produce no `chat-turn` observation, so the online judge never scores them.
