@@ -16,6 +16,9 @@ make eval args="--mode answer --category guardrail"   # LLM evaluation of one ca
 make eval args="--id booking-03 --no-langfuse"
 ```
 
+**Never in CI**: the LLM account is shared and limited, so GitHub Actions only runs `make ci` and the
+CLI exits with an error when `CI=true`.
+
 Each run writes `backend/eval_runs/<kind>-<timestamp>.json` (gitignored) and, with Langfuse
 configured, an experiment run on the `cadre-support-eval` dataset, with one trace and its scores
 per case.

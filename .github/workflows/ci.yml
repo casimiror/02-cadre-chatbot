@@ -30,6 +30,8 @@ jobs:
       - name: Build images
         run: docker compose build api
 
+      # Never `make eval` here: it calls the shared, rate-limited LLM for every case (the CLI
+      # also refuses to run when CI=true). Evaluations are run locally only.
       - name: make ci
         run: make ci
 

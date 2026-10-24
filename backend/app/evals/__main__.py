@@ -1,6 +1,7 @@
 """CLI: `make eval args="..."` (python -m app.evals)."""
 
 import argparse
+import os
 import sys
 from typing import get_args
 
@@ -48,6 +49,11 @@ def main() -> int:
     parser.add_argument("--concurrency", type=int, default=4)
     parser.add_argument("--no-langfuse", action="store_true")
     args = parser.parse_args()
+
+    # The LLM account is shared and limited: evaluations never run in CI (GitHub sets CI=true).
+    if os.environ.get("CI", "").lower() == "true":
+        print("make eval does not run in CI: it calls the LLM for every case.", file=sys.stderr)
+        return 1
 
     cases = load_dataset()
     if args.category:

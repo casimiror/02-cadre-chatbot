@@ -50,7 +50,7 @@ make migration m="add x"           # autogenerate; READ and tidy the file (docs/
 make migrate     # local db        make migrate-supabase      # Supabase, before deploying
 make migrate-check                 make migrate-roundtrip
 make check       # lint + tests + migration check + UI build
-make eval        # evaluate the real agent on the dataset (LLM calls, local only)
+make eval        # evaluate the real agent (LLM calls): local only, never in CI
 ```
 
 ## Rules that always apply
