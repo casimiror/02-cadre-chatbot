@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     contact_email: str = "hello@gocadre.ai"
     portal_url: str = ""
 
+    # Offline evaluation (app/evals). Off everywhere except local runs: it calls the LLM for every
+    # case, so it must never be reachable on the deployed app.
+    eval_enabled: bool = False
+    eval_judge_model: str = "google/gemini-3.8-flash"
+
     # Built React app. The Docker image and the Vercel build both put it in backend/static.
     frontend_dist: Path = BACKEND_DIR / "static"
 

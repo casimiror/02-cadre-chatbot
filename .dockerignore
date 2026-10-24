@@ -7,4 +7,5 @@ frontend/dist
 **/.pytest_cache
 **/.ruff_cache
 backend/static
+backend/eval_runs
 .vercel

@@ -7,6 +7,7 @@
 | [design/frontend.md](design/frontend.md) | change how the UI looks or behaves: tokens, class naming, components, accessibility |
 | [database.md](database.md) | change the schema or connection handling: tables, migrations, RLS, local vs Supabase |
 | [knowledge-base.md](knowledge-base.md) | edit what the bot knows: sources, how to write sections, retrieval |
+| [evaluation.md](evaluation.md) | evaluate the agent: dataset, `make eval`, metrics, judge, Langfuse experiments |
 | [deployment.md](deployment.md) | deploy or debug production: Vercel, Supabase, env vars, verification |
 | [conventions.md](conventions.md) | write code or commits: git workflow, naming, tests, secrets |
 
