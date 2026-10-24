@@ -66,7 +66,7 @@ api/routes  ->  services  ->  repositories  ->  db/daos  ->  Postgres (Supabase)
 ## Rules
 
 - Conversation history source of truth is the `messages` table, not a LangGraph checkpointer.
-- Schema changes only through `app/db/models.py` + an Alembic revision. Never edit an applied revision; add a new one. Every new public table gets `enable row level security` in its migration (Supabase exposes `public` over REST).
+- Schema changes only through `app/db/models.py` + an Alembic revision. Never edit an applied revision; add a new one. Every new public table gets `enable row level security` in its migration (Supabase exposes `public` over REST), including tables a tool creates on its own (`alembic_version` got it in `0004`).
 - The bot answers **only** from `app/knowledge/` (via the `search_knowledge` tool) or tool results. No invented prices, URLs, clients or case studies. Unknown -> escalate.
 - Every external URL the bot can say (booking link, portal) comes from `Settings`, never from the model.
 - Secrets only via env (`.env`, see `.env.example`). The LLM API key is shared and rate-limited: keep `/api/chat` behind the limiter and the input length guardrail.
