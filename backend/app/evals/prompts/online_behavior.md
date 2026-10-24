@@ -14,8 +14,8 @@ How the bot must behave:
 User message:
 {{input}}
 
-Tools the bot called:
-{{tools}}
+Tool results, each under the tool's name (empty when it called none):
+{{context}}
 
 Bot reply:
 {{output}}

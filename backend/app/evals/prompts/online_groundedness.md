@@ -7,10 +7,7 @@ numbers, dates, URLs, people, services) is invented, even if it sounds plausible
 User message:
 {{input}}
 
-Tools the bot called:
-{{tools}}
-
-Tool results (empty when it called none):
+Tool results, each under the tool's name (empty when it called none):
 {{context}}
 
 Bot reply:
