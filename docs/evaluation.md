@@ -112,8 +112,8 @@ there, so the app makes no extra calls. Its prompts are versioned here and paste
 
 | Score | Prompt | Variables |
 | --- | --- | --- |
-| `online_groundedness` (0-1) | `app/evals/prompts/online_groundedness.md` | `input`, `output`, `context` |
-| `online_behavior` (0-1) | `app/evals/prompts/online_behavior.md` | `input`, `output`, `context` |
+| `online_groundedness` (0-1) | `app/evals/prompts/online_groundedness.md` | `input`, `output`, `tools`, `context` |
+| `online_behavior` (0-1) | `app/evals/prompts/online_behavior.md` | `input`, `output`, `tools`, `context` |
 
 Observation-level evaluators only see the observation they run on, so the root span `chat-turn`
 carries what the judge needs in its metadata: `tools_called` and `context` (the tool results of the
@@ -131,9 +131,9 @@ Setup in Langfuse (once per project):
    from 0 to 1 with a short reasoning.
 3. Run it on **observations**, filtered by name `chat-turn` and environment `production`, on new
    data only, with a sampling rate (for example 20 %, to keep the LLM cost down).
-4. Map the variables: `input` → Input, `output` → Output, `context` → Metadata with JSONPath
-   `$.context` (each tool result under the tool's name). Not *Tool Calls*: those come from
-   generations, and `chat-turn` is a span.
+4. Map the variables: `input` → Input, `output` → Output, `tools` → Metadata with JSONPath
+   `$.tools_called`, `context` → Metadata with JSONPath `$.context` (each tool result under the
+   tool's name). Not *Tool Calls*: those come from generations, and `chat-turn` is a span.
 
 Scores appear on each trace and in the Langfuse dashboards over time. Evaluation
 runs (`make eval`) produce no `chat-turn` observation, so the online judge never scores them.
