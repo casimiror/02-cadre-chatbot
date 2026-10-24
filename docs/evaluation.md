@@ -104,6 +104,36 @@ is looked for in the returned sections:
 
 A case **passes** when every check passes and the judge gives accuracy and behaviour of at least 4.
 
+## Online evaluation in Langfuse
+
+The offline evaluation tests the dataset; an **LLM-as-a-judge evaluator in Langfuse** scores a
+sample of real production turns. It runs on Langfuse's side, with an LLM connection configured
+there, so the app makes no extra calls. Its prompts are versioned here and pasted into Langfuse:
+
+| Score | Prompt | Variables |
+| --- | --- | --- |
+| `online_groundedness` (0-1) | `app/evals/prompts/online_groundedness.md` | `input`, `output`, `tools`, `context` |
+| `online_behavior` (0-1) | `app/evals/prompts/online_behavior.md` | `input`, `output`, `tools` |
+
+Observation-level evaluators only see the observation they run on, so the root span `chat-turn`
+carries what the judge needs in its metadata: `tools_called` and `context` (the tool results of the
+turn). It sees only the last user message, not the conversation history.
+
+Setup in Langfuse (once per project):
+
+1. **Settings → LLM Connections → Add**: provider *OpenAI*, base URL `https://openrouter.ai/api/v1`,
+   your OpenRouter key.
+2. **Evaluators → Set up evaluator → Create custom evaluator**, one per prompt: paste the prompt,
+   model `google/gemini-3.8-flash`, score name as in the table, and describe the score as a number
+   from 0 to 1 with a short reasoning.
+3. Run it on **observations**, filtered by name `chat-turn` and environment `production`, on new
+   data only, with a sampling rate (for example 20 %, to keep the LLM cost down).
+4. Map the variables: `input` → Input, `output` → Output, `tools` → Metadata `$.tools_called`,
+   `context` → Metadata `$.context`.
+
+Scores appear on each trace and in the Langfuse dashboards over time. Evaluation
+runs (`make eval`) produce no `chat-turn` observation, so the online judge never scores them.
+
 ## Adding cases
 
 Add a line to `dataset.jsonl` with the next id in its category and keep 5 per category (or update

@@ -148,6 +148,7 @@ To add a case: next id in its category, keywords copied from the files in `expec
 | `retrieval.py` | MRR, nDCG, coverage (from the course) and parsing of `search_knowledge` output |
 | `checks.py` | deterministic checks |
 | `judge.py`, `prompts/judge.md` | the LLM judge and its rubric |
+| `prompts/online_*.md` | prompts of the online judge in Langfuse, for production traces ([setup](../../../docs/evaluation.md#online-evaluation-in-langfuse)) |
 | `results.py` | per-case and per-run models, summaries by category; what the JSON contains |
 | `runner.py` | runs a RAG or LLM evaluation, through `run_experiment` when Langfuse is configured |
 | `store.py` | reads the run JSON files back for the page |
