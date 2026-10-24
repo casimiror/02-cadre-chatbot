@@ -38,3 +38,15 @@ body { margin: 0; background: var(--bg); }
 .bubble--user { align-self: flex-end; background: var(--user); color: var(--user-text); }
 .bubble--assistant { align-self: flex-start; background: var(--assistant); }
 .bubble--typing { color: var(--muted); }
+
+/* Rendered Markdown inside assistant bubbles: Markdown owns the line breaks, not pre-wrap. */
+.bubble--assistant:has(.markdown) { white-space: normal; }
+.markdown > :first-child { margin-top: 0; }
+.markdown > :last-child { margin-bottom: 0; }
+.markdown p, .markdown ul, .markdown ol { margin: 0 0 8px; }
+.markdown ul, .markdown ol { padding-left: 20px; }
+.markdown li + li { margin-top: 2px; }
+.markdown a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.markdown code { font-size: 0.9em; background: rgb(0 0 0 / 0.06); padding: 1px 4px; border-radius: 4px; }
+.markdown table { border-collapse: collapse; margin: 0 0 8px; font-size: 0.95em; }
+.markdown th, .markdown td { border: 1px solid rgb(0 0 0 / 0.12); padding: 4px 8px; text-align: left; }

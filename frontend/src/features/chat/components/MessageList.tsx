@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { ChatMessage } from "../types";
+import { MessageContent } from "./MessageContent";
 
 interface Props {
   messages: ChatMessage[];
@@ -18,7 +19,7 @@ export function MessageList({ messages, pending }: Props) {
     <div className="chat__messages" aria-live="polite">
       {messages.map((m) => (
         <div key={m.id} className={`bubble bubble--${m.role}`}>
-          {m.content}
+          <MessageContent role={m.role} content={m.content} />
         </div>
       ))}
       {pending && <div className="bubble bubble--assistant bubble--typing">…</div>}

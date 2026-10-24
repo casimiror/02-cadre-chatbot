@@ -42,6 +42,9 @@ frameworks or CSS-in-JS.
 
 - **Bubbles**: user right-aligned on `--user`, assistant left-aligned on `--assistant`, max 85 %
   width. The typing indicator is an assistant bubble with `--muted` text.
+- **Markdown in replies**: `.markdown` inside an assistant bubble. Paragraph and list spacing is
+  8 px, links inherit the text color and are underlined, inline code gets a faint background. The
+  bubble drops `white-space: pre-wrap` when it holds Markdown.
 - **Input bar**: text field + Send button; Send is disabled while a reply is pending or the field is
   empty. `maxLength` matches the backend's `MAX_INPUT_CHARS`.
 - **Errors**: one line under the messages, `role="alert"`, plain language, no codes.

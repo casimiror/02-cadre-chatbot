@@ -11,7 +11,7 @@ frontend/src/
   features/chat/
     api/chatClient.ts        # the only place that knows the HTTP contract
     hooks/useChat.ts         # all chat state and side effects
-    components/              # ChatWindow (container), MessageList, MessageInput (presentational)
+    components/              # ChatWindow (container), MessageList, MessageContent, MessageInput
     types.ts                 # mirrors backend app/schemas/chat.py
 ```
 
@@ -39,6 +39,13 @@ Same idea as the backend layering: each layer only talks to the next one.
 
 `types.ts` mirrors `backend/app/schemas/chat.py` by hand. A schema change means changing both
 sides in the same commit.
+
+## Rendering replies
+
+Assistant replies are Markdown (`MessageContent`, `react-markdown` + `remark-gfm` for lists, tables
+and bare-URL links). User text is rendered as typed. Raw HTML in Markdown is never rendered, and
+links open in a new tab with `rel="noopener noreferrer"`; which URLs can appear is the backend
+output guardrail's job.
 
 ## Browser storage
 
