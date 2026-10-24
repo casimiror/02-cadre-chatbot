@@ -11,8 +11,8 @@ class Settings(BaseSettings):
         env_file=(BACKEND_DIR.parent / ".env", BACKEND_DIR / ".env"), extra="ignore"
     )
 
-    llm_provider: str = "anthropic"
-    llm_model: str = "claude-haiku-5-5"
+    llm_provider: str = "openrouter"
+    llm_model: str = "google/gemini-3.5-flash-lite"
     llm_api_key: str = ""
     llm_base_url: str | None = None
     llm_temperature: float = 0.2
