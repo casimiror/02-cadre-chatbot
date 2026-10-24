@@ -45,6 +45,9 @@ frameworks or CSS-in-JS.
 - **Markdown in replies**: `.markdown` inside an assistant bubble. Paragraph and list spacing is
   8 px, links inherit the text color and are underlined, inline code gets a faint background. The
   bubble drops `white-space: pre-wrap` when it holds Markdown.
+- **Feedback**: two 28 px icon buttons under each stored reply (`.feedback`). Outlined and muted by
+  default, filled with `--text` when chosen; hover shows the `--assistant` background. Each button
+  has `aria-label` ("Helpful", "Not helpful") and `aria-pressed`; the pair is a labelled `group`.
 - **Input bar**: text field + Send button; Send is disabled while a reply is pending or the field is
   empty. `maxLength` matches the backend's `MAX_INPUT_CHARS`.
 - **Errors**: one line under the messages, `role="alert"`, plain language, no codes.

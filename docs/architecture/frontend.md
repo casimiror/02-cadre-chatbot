@@ -11,7 +11,7 @@ frontend/src/
   features/chat/
     api/chatClient.ts        # the only place that knows the HTTP contract
     hooks/useChat.ts         # all chat state and side effects
-    components/              # ChatWindow (container), MessageList, MessageContent, MessageInput
+    components/              # ChatWindow (container), MessageList, MessageContent, FeedbackButtons, MessageInput
     types.ts                 # mirrors backend app/schemas/chat.py
 ```
 
@@ -46,6 +46,13 @@ Assistant replies are Markdown (`MessageContent`, `react-markdown` + `remark-gfm
 and bare-URL links). User text is rendered as typed. Raw HTML in Markdown is never rendered, and
 links open in a new tab with `rel="noopener noreferrer"`; which URLs can appear is the backend
 output guardrail's job.
+
+## Feedback on replies
+
+Assistant messages from the server carry their server id, `rateable: true` and `rating`. The local
+greeting is not rateable. `useChat().rate(message, rating | null)` updates the thumb optimistically
+and reverts it, with an error line, if `rateMessage` fails (`PUT` to set, `DELETE` to remove).
+`FeedbackButtons` is presentational: clicking the active thumb sends `null`.
 
 ## Browser storage
 
