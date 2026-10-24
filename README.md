@@ -10,6 +10,7 @@ when it can't answer.
 
 - **FastAPI** serves `POST /api/chat` and the built React UI (`app.frontend()`), one container.
 - **LangGraph** agent: `input_guard -> agent <-> tools -> output_guard`, built with `AgentBuilder`.
+  Diagram and how to modify or create agents: [backend/app/agents/](backend/app/agents/README.md).
 - **Tools** (`ToolBuilder`): `search_knowledge`, `get_booking_link`, `request_strategy_call`, `escalate_to_human`.
 - **Knowledge base** (`backend/app/knowledge/`): Markdown split by `##`, ranked with BM25. Company,
   services, industries, case studies and FAQ come from cadre.ai (scraped 2026-10-24). The

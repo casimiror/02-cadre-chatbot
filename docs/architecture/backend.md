@@ -62,6 +62,8 @@ Limits: `RATE_LIMIT_CHAT` (10/min) and `RATE_LIMIT_FEEDBACK` (30/min) per client
    assistant message's id is returned as `message_id` so the UI can attach feedback to it.
 6. The route schedules `observability.flush` as a background task (serverless instances can freeze).
 
+Graph diagram and how to modify or create agents: [`backend/app/agents/README.md`](../../backend/app/agents/README.md).
+
 ## Tools
 
 | Tool | Area | What it does |
