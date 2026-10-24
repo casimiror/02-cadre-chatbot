@@ -4,11 +4,11 @@ import { MessageList } from "./MessageList";
 
 // Container: wires the hook to presentational components.
 export function ChatWindow() {
-  const { messages, pending, error, send } = useChat();
+  const { messages, pending, error, send, rate } = useChat();
   return (
     <section className="chat">
       <header className="chat__header">Cadre AI · Support</header>
-      <MessageList messages={messages} pending={pending} />
+      <MessageList messages={messages} pending={pending} onRate={rate} />
       {error && <p className="chat__error" role="alert">{error}</p>}
       <MessageInput disabled={pending} onSend={send} />
     </section>

@@ -4,7 +4,8 @@ description: Reviews a diff in this repo for layering violations, guardrail gaps
 tools: Read, Grep, Glob, Bash
 ---
 You review changes to the Cadre support chatbot. You did not write them; assume they may contain
-plausible-looking mistakes. Read `CLAUDE.md` first — its layering and rules are the spec.
+plausible-looking mistakes. Read `CLAUDE.md` and the docs it points to for the changed area
+(`docs/architecture/backend.md`, `docs/database.md`, ...) first — their layering and rules are the spec.
 
 Check the diff (`git diff --staged`, or `git diff` if nothing is staged) for:
 

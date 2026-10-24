@@ -1,3 +1,4 @@
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -14,4 +15,9 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     conversation_id: UUID
+    message_id: UUID  # id of the assistant reply; send it back to rate the reply
     reply: str
+
+
+class FeedbackRequest(BaseModel):
+    rating: Literal["up", "down"]

@@ -4,7 +4,7 @@ from uuid import uuid4
 from langchain_core.messages import AIMessage
 
 from app.core import observability
-from app.domain.models import Conversation
+from app.domain.models import Conversation, Message
 from app.services.chat_service import ChatService
 
 
@@ -76,7 +76,13 @@ class FakeConversations:
         return []
 
     def append(self, conversation_id, role, content):
-        pass
+        return Message(
+            id=uuid4(),
+            conversation_id=conversation_id,
+            role=role,
+            content=content,
+            created_at="2026-10-24T00:00:00Z",
+        )
 
 
 class FakeAgent:
@@ -89,8 +95,9 @@ def test_chat_service_passes_visitor_as_langfuse_user(monkeypatch):
     calls = _record_propagation(monkeypatch)
     conversations, visitor_id = FakeConversations(), uuid4()
 
-    ChatService(conversations, FakeAgent(), 10).handle_turn(None, "hi", visitor_id)
+    result = ChatService(conversations, FakeAgent(), 10).handle_turn(None, "hi", visitor_id)
 
+    assert result.message_id is not None  # the stored reply, target of 👍/👎
     assert conversations.created_with == [visitor_id]
     assert calls[0]["user_id"] == str(visitor_id)
     assert calls[0]["session_id"] == str(conversations.conversation.id)

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { ChatApiError, sendMessage } from "../api/chatClient";
-import type { ChatMessage } from "../types";
+import { ChatApiError, rateMessage, sendMessage } from "../api/chatClient";
+import type { ChatMessage, Rating } from "../types";
 
 const STORAGE_KEY = "cadre.conversationId";
 const VISITOR_KEY = "cadre.visitorId";
@@ -60,7 +60,10 @@ export function useChat() {
         } catch {
           /* private mode: conversation just won't survive a reload */
         }
-        setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: res.reply }]);
+        setMessages((m) => [
+          ...m,
+          { id: res.message_id, role: "assistant", content: res.reply, rateable: true, rating: null },
+        ]);
       } catch (e) {
         setError(e instanceof ChatApiError ? e.message : "Network error. Check your connection.");
       } finally {
@@ -70,5 +73,20 @@ export function useChat() {
     [conversationId, visitorId, pending],
   );
 
-  return { messages, pending, error, send };
+  /** Optimistic: the thumb toggles at once and reverts if the server rejects the vote. */
+  const rate = useCallback(async (message: ChatMessage, rating: Rating | null) => {
+    const previous = message.rating ?? null;
+    const setRating = (value: Rating | null) =>
+      setMessages((m) => m.map((msg) => (msg.id === message.id ? { ...msg, rating: value } : msg)));
+    setError(null);
+    setRating(rating);
+    try {
+      await rateMessage(message.id, rating);
+    } catch (e) {
+      setRating(previous);
+      setError(e instanceof ChatApiError ? e.message : "Network error. Check your connection.");
+    }
+  }, []);
+
+  return { messages, pending, error, send, rate };
 }

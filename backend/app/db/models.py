@@ -82,3 +82,21 @@ class ContactRequestRow(TimestampedMixin, Base):
     phone: Mapped[str | None] = mapped_column(Text)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, server_default="open")
+
+
+class MessageFeedbackRow(TimestampedMixin, Base):
+    """A visitor's 👍/👎 on one assistant message. Changing the vote updates the row; removing it
+    deletes the row, so at most one row per message."""
+
+    __tablename__ = "message_feedback"
+    __table_args__ = (
+        CheckConstraint("rating in ('up', 'down')", name="message_feedback_rating_check"),
+    )
+
+    message_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("messages.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
+    rating: Mapped[str] = mapped_column(String(8), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )

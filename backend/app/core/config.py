@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     )
 
     rate_limit_chat: str = "10/minute"
+    # Votes are cheap (no LLM call) but still writes: looser limit than chat.
+    rate_limit_feedback: str = "30/minute"
     max_input_chars: int = 2000
     max_history_messages: int = 20
 

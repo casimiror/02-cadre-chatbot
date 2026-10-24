@@ -11,5 +11,5 @@ Create a new agent: $ARGUMENTS
 3. Its tools: a `build_<agent_name>_tools(deps)` function in `app/tools/registry.py`.
 4. Wire it in `app/api/deps.py` only. Routes/services must not build agents.
 5. Test the graph with `GenericFakeChatModel` like `tests/test_builders.py` (no real LLM calls in unit tests).
-6. Update CLAUDE.md's architecture section if routing between agents is introduced.
+6. Update `docs/architecture/backend.md` if routing between agents is introduced.
 7. Run `/check`.

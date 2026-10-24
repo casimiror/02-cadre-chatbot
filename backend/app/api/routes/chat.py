@@ -24,4 +24,6 @@ def chat(
     # Serverless instances may freeze after the response: send this turn's trace now, after the
     # reply is on its way, instead of relying on the exporter's background thread.
     background.add_task(observability.flush)
-    return ChatResponse(conversation_id=result.conversation_id, reply=result.reply)
+    return ChatResponse(
+        conversation_id=result.conversation_id, message_id=result.message_id, reply=result.reply
+    )

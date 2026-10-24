@@ -6,7 +6,7 @@ API := $(COMPOSE) run --rm api
 API_NODB := $(COMPOSE) run --rm --no-deps api
 
 .PHONY: help env up dev down reset-db logs test lint format migrate migration migrate-check \
-	migrate-roundtrip migrate-sql migrate-supabase ui-build psql check lock
+	migrate-roundtrip migrate-sql migrate-supabase ui-build psql check ci lock
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -67,6 +67,8 @@ psql: ## SQL shell on the local db
 	$(COMPOSE) exec db sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
 
 check: lint test migrate-check ui-build ## Everything /check runs before a commit
+
+ci: lint test migrate migrate-check migrate-roundtrip ui-build ## What GitHub Actions runs (fresh db: migrate first)
 
 lock: ## Re-lock uv deps on the host (after editing pyproject); images rebuild on next up/dev
 	cd backend && uv lock

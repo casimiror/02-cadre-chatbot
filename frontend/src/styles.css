@@ -38,3 +38,27 @@ body { margin: 0; background: var(--bg); }
 .bubble--user { align-self: flex-end; background: var(--user); color: var(--user-text); }
 .bubble--assistant { align-self: flex-start; background: var(--assistant); }
 .bubble--typing { color: var(--muted); }
+
+/* Rendered Markdown inside assistant bubbles: Markdown owns the line breaks, not pre-wrap. */
+.bubble--assistant:has(.markdown) { white-space: normal; }
+.markdown > :first-child { margin-top: 0; }
+.markdown > :last-child { margin-bottom: 0; }
+.markdown p, .markdown ul, .markdown ol { margin: 0 0 8px; }
+.markdown ul, .markdown ol { padding-left: 20px; }
+.markdown li + li { margin-top: 2px; }
+.markdown a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.markdown code { font-size: 0.9em; background: rgb(0 0 0 / 0.06); padding: 1px 4px; border-radius: 4px; }
+.markdown table { border-collapse: collapse; margin: 0 0 8px; font-size: 0.95em; }
+.markdown th, .markdown td { border: 1px solid rgb(0 0 0 / 0.12); padding: 4px 8px; text-align: left; }
+
+/* 👍/👎 under each stored reply. Quiet until hovered or chosen. */
+.feedback { align-self: flex-start; display: flex; gap: 2px; margin: -4px 0 4px 4px; }
+.feedback__button {
+  display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
+  border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer;
+}
+.feedback__button svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.feedback__button:hover { background: var(--assistant); color: var(--text); }
+.feedback__button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.feedback__button--active { color: var(--text); }
+.feedback__button--active svg { fill: currentColor; }
