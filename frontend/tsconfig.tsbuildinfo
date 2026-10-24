@@ -1,1 +1,0 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/features/chat/types.ts","./src/features/chat/api/chatclient.ts","./src/features/chat/components/chatwindow.tsx","./src/features/chat/components/messageinput.tsx","./src/features/chat/components/messagelist.tsx","./src/features/chat/hooks/usechat.ts","./vite.config.ts"],"version":"5.8.3"}
