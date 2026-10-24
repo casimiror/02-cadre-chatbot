@@ -13,6 +13,7 @@ The ORM models in `backend/app/db/models.py` are the single source of truth.
 | `messages` | every user/assistant message | `role in ('user','assistant')`; history source of truth |
 | `escalations` | questions the bot couldn't answer | `status in ('open','contacted','closed')` |
 | `contact_requests` | strategy-call requests sent by the bot | same fields as the cadre.ai contact form |
+| `message_feedback` | visitor's 👍/👎 on an assistant message | `message_id` unique, `rating in ('up','down')`, `updated_at`; removing a vote deletes the row |
 | `alembic_version` | Alembic bookkeeping | RLS enabled in `0004` |
 
 All app tables have `id` (UUID) and `created_at` (`TimestampedMixin`), and child rows cascade on

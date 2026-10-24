@@ -12,6 +12,7 @@ from app.repositories.conversation_repository import ConversationRepository
 @dataclass(frozen=True)
 class TurnResult:
     conversation_id: UUID
+    message_id: UUID  # the stored assistant message, the target of 👍/👎 feedback
     reply: str
     blocked_by: str | None
 
@@ -47,5 +48,5 @@ class ChatService:
 
         # Persist only after a successful turn so a failed LLM call leaves no half-turn.
         self._conversations.append(conversation.id, "user", user_text)
-        self._conversations.append(conversation.id, "assistant", reply)
-        return TurnResult(conversation.id, reply, state.get("blocked_by"))
+        answer = self._conversations.append(conversation.id, "assistant", reply)
+        return TurnResult(conversation.id, answer.id, reply, state.get("blocked_by"))

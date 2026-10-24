@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel
 
 Role = Literal["user", "assistant"]
+Rating = Literal["up", "down"]
 
 
 class Message(BaseModel):
@@ -40,3 +41,11 @@ class ContactRequest(BaseModel):
     phone: str | None
     message: str
     created_at: datetime
+
+
+class MessageFeedback(BaseModel):
+    id: UUID
+    message_id: UUID
+    rating: Rating
+    created_at: datetime
+    updated_at: datetime

@@ -33,6 +33,17 @@ api/routes  ->  services  ->  repositories  ->  db/daos  ->  Postgres
 
 Wiring of concrete classes happens **only** in `app/api/deps.py`.
 
+## HTTP API
+
+| Method and path | Body | Response |
+| --- | --- | --- |
+| `GET /api/health` | | `{"status": "ok"}` |
+| `POST /api/chat` | `message`, `conversation_id?`, `visitor_id?` | `conversation_id`, `message_id` (the stored reply), `reply` |
+| `PUT /api/messages/{id}/feedback` | `{"rating": "up" \| "down"}` | 204; 404 if `id` isn't an assistant message |
+| `DELETE /api/messages/{id}/feedback` | | 204 (idempotent); 404 as above |
+
+Limits: `RATE_LIMIT_CHAT` (10/min) and `RATE_LIMIT_FEEDBACK` (30/min) per client IP.
+
 ## A chat turn
 
 1. `POST /api/chat` (`routes/chat.py`): slowapi limits per client IP, `ChatRequest` validates
@@ -45,7 +56,8 @@ Wiring of concrete classes happens **only** in `app/api/deps.py`.
    - Input guardrails: max length, prompt-injection heuristics. Blocked -> canned reply, no LLM call.
    - Agent: LLM with tools bound; loops through `ToolNode` until it answers.
    - Output guardrails: no prices, only allowed URLs. Blocked -> the reply is replaced.
-5. User and assistant messages are persisted **after** the turn succeeds (no half turns).
+5. User and assistant messages are persisted **after** the turn succeeds (no half turns); the
+   assistant message's id is returned as `message_id` so the UI can attach feedback to it.
 6. The route schedules `observability.flush` as a background task (serverless instances can freeze).
 
 ## Tools
@@ -74,6 +86,13 @@ Each guardrail has `name` and `check(text) -> GuardrailResult` (`app/guardrails/
 | `AllowedLinksGuardrail` | output | any URL not starting with a `Settings` URL |
 
 The output check runs after generation, so replies are returned whole (no token streaming).
+
+## Feedback
+
+`FeedbackService` (`app/services/feedback_service.py`) lets a visitor rate a reply: one row per
+message in `message_feedback`, upserted in one statement (`MessageFeedbackDAO.upsert`), deleted when
+the vote is removed. Only assistant messages are rateable (`MessageNotRateableError` -> 404). Join
+`message_feedback -> messages -> conversations` to analyse a conversation with its votes.
 
 ## Configuration
 
