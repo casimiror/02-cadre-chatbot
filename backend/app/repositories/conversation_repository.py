@@ -10,10 +10,14 @@ class ConversationRepository:
         self._conversations = conversations
         self._messages = messages
 
-    def get_or_create(self, conversation_id: UUID | None) -> Conversation:
+    def get_or_create(
+        self, conversation_id: UUID | None, visitor_id: UUID | None = None
+    ) -> Conversation:
+        """An existing conversation keeps the visitor it was created with."""
         if conversation_id and (row := self._conversations.get(conversation_id)):
             return Conversation.model_validate(row, from_attributes=True)
-        return Conversation.model_validate(self._conversations.insert(), from_attributes=True)
+        row = self._conversations.insert(visitor_id=visitor_id)
+        return Conversation.model_validate(row, from_attributes=True)
 
     def recent_messages(self, conversation_id: UUID, limit: int) -> list[Message]:
         rows = self._messages.list_by("conversation_id", conversation_id, desc=True, limit=limit)

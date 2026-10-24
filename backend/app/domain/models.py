@@ -17,6 +17,7 @@ class Message(BaseModel):
 
 class Conversation(BaseModel):
     id: UUID
+    visitor_id: UUID | None
     created_at: datetime
 
 

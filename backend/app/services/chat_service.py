@@ -31,10 +31,12 @@ class ChatService:
     def handle_turn(
         self, conversation_id: UUID | None, user_text: str, visitor_id: UUID | None = None
     ) -> TurnResult:
-        conversation = self._conversations.get_or_create(conversation_id)
+        conversation = self._conversations.get_or_create(conversation_id, visitor_id)
         history = self._conversations.recent_messages(conversation.id, self._history_limit)
 
-        user_id = str(visitor_id) if visitor_id else None
+        # The stored visitor wins, so one conversation is never split across Langfuse users.
+        visitor = conversation.visitor_id or visitor_id
+        user_id = str(visitor) if visitor else None
         with trace_turn(str(conversation.id), user_id, user_text) as trace:
             config = {**trace.config, "configurable": {"conversation_id": str(conversation.id)}}
             state = self._agent.invoke(

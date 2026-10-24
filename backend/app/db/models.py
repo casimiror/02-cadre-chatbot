@@ -24,6 +24,10 @@ class ConversationRow(TimestampedMixin, Base):
 
     __tablename__ = "conversations"
 
+    # Anonymous browser id (UUID, never PII), the same value Langfuse gets as user_id. Null for
+    # conversations started before it existed or from browsers without localStorage.
+    visitor_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+
 
 class MessageRow(TimestampedMixin, Base):
     __tablename__ = "messages"

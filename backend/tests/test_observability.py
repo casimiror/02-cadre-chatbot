@@ -63,9 +63,13 @@ def test_trace_turn_sets_user_and_session(monkeypatch):
 
 class FakeConversations:
     def __init__(self) -> None:
-        self.conversation = Conversation(id=uuid4(), created_at="2026-10-24T00:00:00Z")
+        self.conversation = Conversation(
+            id=uuid4(), visitor_id=None, created_at="2026-10-24T00:00:00Z"
+        )
+        self.created_with: list = []
 
-    def get_or_create(self, conversation_id):
+    def get_or_create(self, conversation_id, visitor_id=None):
+        self.created_with.append(visitor_id)
         return self.conversation
 
     def recent_messages(self, conversation_id, limit):
@@ -87,5 +91,17 @@ def test_chat_service_passes_visitor_as_langfuse_user(monkeypatch):
 
     ChatService(conversations, FakeAgent(), 10).handle_turn(None, "hi", visitor_id)
 
+    assert conversations.created_with == [visitor_id]
     assert calls[0]["user_id"] == str(visitor_id)
     assert calls[0]["session_id"] == str(conversations.conversation.id)
+
+
+def test_stored_visitor_wins_over_request(monkeypatch):
+    monkeypatch.setattr(observability, "_client", FakeLangfuse())
+    calls = _record_propagation(monkeypatch)
+    conversations, stored = FakeConversations(), uuid4()
+    conversations.conversation.visitor_id = stored
+
+    ChatService(conversations, FakeAgent(), 10).handle_turn(uuid4(), "hi", uuid4())
+
+    assert calls[0]["user_id"] == str(stored)

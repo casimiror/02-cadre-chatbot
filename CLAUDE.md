@@ -9,7 +9,7 @@ Customer support chatbot for Cadre AI (take-home). One deployable unit: FastAPI 
 - **Package manager**: `uv` only. Never `pip install`. Add deps with `uv add <pkg>` inside `backend/` (the one thing run on the host; see Commands).
 - **Frontend**: React + Vite + TypeScript in `frontend/`. Build output `frontend/dist` is served by FastAPI.
 - **DB**: Supabase used as plain Postgres via SQLAlchemy 2 + psycopg 3 (`DATABASE_URL`). Schema = ORM models in `app/db/models.py`; migrations with **Alembic** in `backend/alembic/`. The browser never talks to the DB.
-- **Observability**: Langfuse via `langfuse.langchain.CallbackHandler`, one trace per chat turn (`core/observability.trace_turn`: root span + `propagate_attributes`), `session_id = conversation_id`, `user_id = visitor_id` (anonymous UUID the browser keeps in localStorage, never an email or name).
+- **Observability**: Langfuse via `langfuse.langchain.CallbackHandler`, one trace per chat turn (`core/observability.trace_turn`: root span + `propagate_attributes`), `session_id = conversation_id`, `user_id = visitor_id` (anonymous UUID the browser keeps in localStorage, stored in `conversations.visitor_id` when the conversation is created; never an email or name).
 - **Runtime**: Docker. `Dockerfile` stages: `frontend` (node builds the UI), `dev` (python + dev deps, source bind-mounted), `runtime` (default, prod). Local Postgres 17 in compose stands in for Supabase.
 - **LLM**: OpenRouter, default model `google/gemini-3.5-flash-lite` (`LLM_PROVIDER`, `LLM_MODEL` in `.env`).
 
