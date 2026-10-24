@@ -10,7 +10,7 @@ the common inbound questions, and that hands off to a human when it can't. Budge
 | # | Scenario (from the brief) | How the bot handles it |
 |---|---|---|
 | 1 | What does Cadre do / do you work with my industry? | `search_knowledge` over services + industries |
-| 2 | How do I book a call with a strategist? | `get_booking_link` (URL from config) |
+| 2 | How do I book a call with a strategist? | `get_booking_link` (contact page + email from config); `request_strategy_call` sends the contact-form request for the user |
 | 3 | How do I access the Cadre portal? | `search_knowledge` (portal FAQ) + portal URL from config |
 | 4 | What is the AI Maturity Index, how do I get scored? | `search_knowledge` |
 | 5 | LLM selection and data security approach | `search_knowledge` (security page) |
@@ -19,8 +19,8 @@ the common inbound questions, and that hands off to a human when it can't. Budge
 ## Scope decisions
 
 **In (v1)**
-- Single support agent (LangGraph) with 3 tools: `search_knowledge`, `get_booking_link`, `escalate_to_human`.
-- Curated Markdown knowledge base (`backend/app/knowledge/`), keyword retrieval.
+- Single support agent (LangGraph) with 4 tools: `search_knowledge`, `get_booking_link`, `request_strategy_call`, `escalate_to_human`.
+- Curated Markdown knowledge base (`backend/app/knowledge/`), BM25 keyword retrieval. Site content from cadre.ai; methodology docs (governance, agents, retrieval, security, evaluation, compliance) are synthetic and marked as such.
 - Guardrails: input length cap, prompt-injection heuristics, off-scope handled by system prompt; output check for invented prices/URLs.
 - Rate limiting per IP on `/api/chat` (shared API key).
 - Conversation + messages + escalations persisted in Supabase Postgres (SQLAlchemy + Alembic).
@@ -29,7 +29,7 @@ the common inbound questions, and that hands off to a human when it can't. Budge
 
 **Out (and why)**
 - Auth / user accounts — prospects are anonymous; portal login is Cadre's real portal, we only point to it.
-- Real calendar booking (Calendly API) — a link is enough to validate; avoids OAuth in 5 h.
+- Real calendar booking — Cadre has no public calendar (contact form + email). The bot stores the request in `contact_requests`; the team follows up by email. No email is sent by the bot in v1.
 - Vector search / pgvector — KB is small; keyword retrieval is debuggable. Revisit if KB > ~50 docs.
 - Token streaming — conflicts with output guardrail; whole replies in v1.
 - Multi-agent routing — one agent covers all 6 scenarios; the builder makes adding agents cheap later.
@@ -62,4 +62,4 @@ Evaluate 2 models on the scenario set before fixing the choice.
 ## Open questions
 
 - Which provider is the provided API key for? (sets `LLM_PROVIDER` default)
-- Real booking URL and portal URL to put in config.
+- Portal URL to put in config (booking = cadre.ai/contact, resolved).
