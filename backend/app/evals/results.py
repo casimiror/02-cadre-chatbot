@@ -6,7 +6,7 @@ from datetime import datetime
 from statistics import mean
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 from app.evals.agent_run import ToolCall
 from app.evals.checks import Check
@@ -40,6 +40,7 @@ class CaseResult(BaseModel):
     latency_s: float
     trace_id: str | None = None
 
+    @computed_field  # serialized, so the /eval page and the JSON show it
     @property
     def passed(self) -> bool:
         checks_ok = all(c.passed for c in self.checks)

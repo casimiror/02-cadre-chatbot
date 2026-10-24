@@ -27,6 +27,11 @@ def create_app() -> FastAPI:
     app.include_router(health.router, prefix="/api")
     app.include_router(chat.router, prefix="/api")
     app.include_router(feedback.router, prefix="/api")
+    if settings.eval_enabled:
+        # Imported here so the deployed app never loads the evaluator.
+        from app.api.routes import evals
+
+        app.include_router(evals.router, prefix="/api")
 
     # Last: serves frontend/dist with SPA fallback; API routes above take priority.
     app.frontend("/", directory=settings.frontend_dist, check_dir="auto")

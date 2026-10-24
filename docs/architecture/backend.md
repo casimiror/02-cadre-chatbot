@@ -44,6 +44,8 @@ Wiring of concrete classes happens **only** in `app/api/deps.py`.
 
 Limits: `RATE_LIMIT_CHAT` (10/min) and `RATE_LIMIT_FEEDBACK` (30/min) per client IP.
 
+`/api/evals/*` exists only with `EVAL_ENABLED=true` (local): see `docs/evaluation.md`.
+
 ## A chat turn
 
 1. `POST /api/chat` (`routes/chat.py`): slowapi limits per client IP, `ChatRequest` validates

@@ -1,6 +1,7 @@
 """The only place where concrete classes are wired together."""
 
 from functools import lru_cache
+from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -21,6 +22,9 @@ from app.services.chat_service import ChatService
 from app.services.feedback_service import FeedbackService
 from app.tools.knowledge.kb import KnowledgeBase
 from app.tools.registry import ToolDeps, build_support_tools
+
+if TYPE_CHECKING:
+    from app.services.eval_service import EvalService
 
 
 @lru_cache
@@ -47,3 +51,14 @@ def get_chat_service() -> ChatService:
 def get_feedback_service() -> FeedbackService:
     sessions = get_sessions()
     return FeedbackService(FeedbackRepository(MessageDAO(sessions), MessageFeedbackDAO(sessions)))
+
+
+@lru_cache
+def get_eval_service() -> "EvalService":
+    """Local-only: the router is mounted when EVAL_ENABLED is true. Imports stay inside so the
+    deployed app never loads the evaluator."""
+    from app.evals.runner import Evaluator
+    from app.evals.store import RunStore
+    from app.services.eval_service import EvalService
+
+    return EvalService(lambda: Evaluator(get_settings()), RunStore())
