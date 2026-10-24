@@ -20,6 +20,7 @@ def init_observability(settings: Settings) -> None:
             public_key=settings.langfuse_public_key,
             secret_key=settings.langfuse_secret_key,
             base_url=settings.langfuse_base_url,
+            environment=settings.langfuse_environment,
         )
 
 
@@ -30,9 +31,18 @@ class TurnTrace:
     config: dict[str, Any]
     _span: Any = field(default=None, repr=False)
 
-    def finish(self, reply: str, blocked_by: str | None) -> None:
+    def finish(
+        self,
+        reply: str,
+        blocked_by: str | None,
+        tools_called: list[str] | None = None,
+        context: str = "",
+    ) -> None:
+        """`tools_called` and `context` (the tool results) are for the online judge in Langfuse:
+        an observation-level evaluator only sees this span, not the LangChain spans under it."""
         if self._span is not None:
-            self._span.update(output=reply, metadata={"blocked_by": blocked_by})
+            metadata = {"blocked_by": blocked_by, "tools_called": tools_called or []}
+            self._span.update(output=reply, metadata={**metadata, "context": context})
 
 
 @contextmanager

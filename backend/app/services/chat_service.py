@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 from langgraph.graph.state import CompiledStateGraph
 
 from app.core.observability import trace_turn
@@ -19,6 +19,13 @@ class TurnResult:
 
 def _to_langchain(history: list[Message]) -> list[BaseMessage]:
     return [HumanMessage(m.content) if m.role == "user" else AIMessage(m.content) for m in history]
+
+
+def _tool_activity(turn: list[BaseMessage]) -> tuple[list[str], str]:
+    """Tools the agent called this turn and what they returned, for the online judge."""
+    called = [call["name"] for m in turn if isinstance(m, AIMessage) for call in m.tool_calls]
+    results = [f"<{m.name}>\n{m.text}" for m in turn if isinstance(m, ToolMessage)]
+    return called, "\n\n".join(results)
 
 
 class ChatService:
@@ -40,11 +47,11 @@ class ChatService:
         user_id = str(visitor) if visitor else None
         with trace_turn(str(conversation.id), user_id, user_text) as trace:
             config = {**trace.config, "configurable": {"conversation_id": str(conversation.id)}}
-            state = self._agent.invoke(
-                {"messages": [*_to_langchain(history), HumanMessage(user_text)]}, config
-            )
+            messages = [*_to_langchain(history), HumanMessage(user_text)]
+            state = self._agent.invoke({"messages": messages}, config)
             reply = state["messages"][-1].text
-            trace.finish(reply, state.get("blocked_by"))
+            tools_called, context = _tool_activity(state["messages"][len(messages) :])
+            trace.finish(reply, state.get("blocked_by"), tools_called, context)
 
         # Persist only after a successful turn so a failed LLM call leaves no half-turn.
         self._conversations.append(conversation.id, "user", user_text)

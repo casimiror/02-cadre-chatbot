@@ -36,6 +36,12 @@ class Settings(BaseSettings):
         default="https://cloud.langfuse.com",
         validation_alias=AliasChoices("LANGFUSE_BASE_URL", "LANGFUSE_HOST"),
     )
+    # Langfuse environment of every trace. Vercel sets VERCEL_ENV (production / preview), so the
+    # online judge in Langfuse can sample only production traffic.
+    langfuse_environment: str = Field(
+        default="development",
+        validation_alias=AliasChoices("LANGFUSE_TRACING_ENVIRONMENT", "VERCEL_ENV"),
+    )
 
     rate_limit_chat: str = "10/minute"
     # Votes are cheap (no LLM call) but still writes: looser limit than chat.

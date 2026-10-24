@@ -107,5 +107,9 @@ Supabase integration), `LANGFUSE_BASE_URL` to `LANGFUSE_HOST`, and `VERCEL=1` se
 ## Observability
 
 Langfuse, one trace per turn (`app/core/observability.py`). The `Langfuse(...)` client is created
-once in the lifespan; `CallbackHandler()` reuses it. The root span records the user text, the reply
-and `blocked_by`. `visitor_id` is an anonymous UUID: never send emails or names to Langfuse.
+once in the lifespan; `CallbackHandler()` reuses it. The root span `chat-turn` records the user
+text, the reply and, as metadata, `blocked_by`, `tools_called` and `context` (the turn's tool
+results), which the online judge in Langfuse reads (`docs/evaluation.md`). Traces carry the
+Langfuse environment `LANGFUSE_TRACING_ENVIRONMENT`, or Vercel's `VERCEL_ENV` (`production`,
+`preview`), else `development`. `visitor_id` is an anonymous UUID: never send emails or names to
+Langfuse.

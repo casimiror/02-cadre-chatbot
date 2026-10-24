@@ -23,3 +23,11 @@ def test_vercel_env_means_serverless(monkeypatch):
     assert not Settings(_env_file=None).serverless
     monkeypatch.setenv("VERCEL", "1")
     assert Settings(_env_file=None).serverless
+
+
+def test_langfuse_environment_follows_vercel(monkeypatch):
+    monkeypatch.delenv("LANGFUSE_TRACING_ENVIRONMENT", raising=False)
+    monkeypatch.delenv("VERCEL_ENV", raising=False)
+    assert Settings(_env_file=None).langfuse_environment == "development"
+    monkeypatch.setenv("VERCEL_ENV", "production")
+    assert Settings(_env_file=None).langfuse_environment == "production"
