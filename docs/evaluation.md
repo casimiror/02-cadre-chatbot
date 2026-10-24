@@ -20,6 +20,31 @@ Each run writes `backend/eval_runs/<kind>-<timestamp>.json` (gitignored) and, wi
 configured, an experiment run on the `cadre-support-eval` dataset, with one trace and its scores
 per case.
 
+## The /eval page
+
+With `EVAL_ENABLED=true` in `.env` (local only), `make dev` and open http://localhost:5173/eval
+(or `make up` and http://localhost:8000/eval). Two sections, as in the course's Gradio app:
+
+- **RAG evaluation**: MRR, nDCG, keyword coverage and source hit cards, average MRR by category, and
+  every case with what the knowledge-base tool returned (worst first).
+- **LLM evaluation**: pass rate and the five judge scores, average accuracy by category, and the
+  cases (failing ones by default) with the judge's feedback; a row expands to the question,
+  expected behaviour, reply, tools, retrieved sections and failed checks.
+
+Each section shows its latest run and has its own **Run evaluation** button. The run happens in a
+background job (`app/services/eval_service.py`): the page polls `GET /api/evals/jobs/{id}` for
+progress, and only one evaluation can run at a time (409 otherwise). Colours use the course's
+thresholds: ratios green >= 0.9, amber >= 0.75; judge scores green >= 4.5, amber >= 4.0.
+
+| Endpoint (only when `EVAL_ENABLED`) | Does |
+| --- | --- |
+| `POST /api/evals/runs` `{"kind": "retrieval" \| "answer"}` | start a run, 202 with the job |
+| `GET /api/evals/jobs/{id}` | job status and progress |
+| `GET /api/evals/runs?kind=` | runs, newest first |
+| `GET /api/evals/runs/{run_id}` | one run's JSON |
+
+On the deployed app the router is not mounted and the page says evaluation is off.
+
 ## Dataset
 
 `backend/app/evals/dataset.jsonl`, 60 cases, 5 per category:

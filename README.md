@@ -48,6 +48,7 @@ make down       # stop (make reset-db also wipes the local database)
 | `make psql` | SQL shell on the local Postgres |
 | `make check` | lint + tests + migration check + UI build (run before committing) |
 | `make ci` | what GitHub Actions runs on every PR: `check` plus migrations on a fresh db |
+| `make eval` | evaluate the agent on the 60-case dataset (RAG + LLM judge); results also at `/eval` with `EVAL_ENABLED=true`. Local only |
 | `make lock` | re-lock uv dependencies on the host |
 
 `make help` lists every target.
