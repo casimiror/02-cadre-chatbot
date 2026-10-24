@@ -123,10 +123,11 @@ Setup in Langfuse (once per project):
 
 1. **Settings → LLM Connections → Add**: provider *OpenAI*, base URL `https://openrouter.ai/api/v1`,
    your OpenRouter key. Turn off **Enable default models** (OpenAI's names, which OpenRouter
-   rejects) and add `google/gemini-3.8-flash` under **Custom models**: OpenRouter needs
-   `provider/model` names.
+   rejects) and add the judge model under **Custom models** with its OpenRouter name
+   (`provider/model`, e.g. `openai/...` or `google/gemini-3.8-flash`).
 2. **Evaluators → Set up evaluator → Create custom evaluator**, one per prompt: paste the prompt,
-   model `google/gemini-3.8-flash`, score name as in the table, and describe the score as a number
+   the custom model from step 1 (it may differ from `EVAL_JUDGE_MODEL`, so online and offline
+   scores are not directly comparable), score name as in the table, and describe the score as a number
    from 0 to 1 with a short reasoning.
 3. Run it on **observations**, filtered by name `chat-turn` and environment `production`, on new
    data only, with a sampling rate (for example 20 %, to keep the LLM cost down).
