@@ -4,7 +4,7 @@ Support chatbot for Cadre AI: answers common inbound questions from a curated kn
 explains how to book a strategy call (and can send the request itself), and escalates to the team
 when it can't answer.
 
-**Live**: _TODO deployed URL_ (Vercel + Supabase, see [Deploy](#deploy))
+**Live**: https://02-cadre-chatbot.vercel.app (Vercel + Supabase, see [Deploy](#deploy))
 
 ## Architecture
 
@@ -63,6 +63,6 @@ make down       # stop (make reset-db also wipes the local database)
 
 ## Deploy
 
-Production runs on Vercel (FastAPI preset, Root Directory
+Production: **https://02-cadre-chatbot.vercel.app**, on Vercel (FastAPI preset, Root Directory
 `backend/`) with Supabase Postgres. Setup, environment variables, migrations and how to verify a
 deploy: [docs/deployment.md](docs/deployment.md).
