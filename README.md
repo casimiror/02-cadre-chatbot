@@ -47,6 +47,7 @@ make down       # stop (make reset-db also wipes the local database)
 | `make ui-build` | build the React app |
 | `make psql` | SQL shell on the local Postgres |
 | `make check` | lint + tests + migration check + UI build (run before committing) |
+| `make ci` | what GitHub Actions runs on every PR: `check` plus migrations on a fresh db |
 | `make lock` | re-lock uv dependencies on the host |
 
 `make help` lists every target.

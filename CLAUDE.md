@@ -29,7 +29,8 @@ Docker locally, Vercel + Supabase in production. Do not swap a piece without upd
 - **IMPORTANT: every task gets its own branch** (`<type>/<kebab-name>`, e.g. `feat/message-feedback`),
   from `main` or from the previous branch when tasks are stacked. Never commit to `main`.
 - Small commits, one concern each, imperative subject. `make check` must pass before pushing.
-- Open a PR with `gh pr create`; merge when checks pass. Details: `docs/conventions.md`.
+- Open a PR with `gh pr create`; merge when CI (`make ci` in GitHub Actions) passes. A PR with a
+  migration needs `make migrate-supabase` before merging. Details: `docs/conventions.md`.
 - New tool: `/new-tool`. New agent: `/new-agent`. Before committing: `/check`.
 
 ## Commands — everything runs in Docker

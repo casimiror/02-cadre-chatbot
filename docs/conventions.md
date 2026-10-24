@@ -10,7 +10,12 @@
   characters, body explaining *why*. The history is reviewed.
 - Before pushing: `make check` passes (lint, tests, migration check, UI build).
 - Integrate through a pull request (`gh pr create`). The PR body says what changed, how it was
-  verified, and anything not verified. Merge once checks pass; delete the branch after merging.
+  verified, and anything not verified. Merge once CI passes; delete the branch after merging.
+- **CI** (`.github/workflows/ci.yml`) runs `make ci` on every PR and push to `main`: lint, tests,
+  migrations up/down on a fresh Postgres, `alembic check`, UI build, and the production image
+  build. Same Docker commands as local, no secrets.
+- If the PR adds a migration, run `make migrate-supabase` **before merging**: merging deploys to
+  production and Vercel does not migrate.
 
 ## Python (backend)
 

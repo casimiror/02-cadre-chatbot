@@ -1,0 +1,41 @@
+name: CI
+
+# Same commands as local development: everything runs through docker compose via make
+# (see CLAUDE.md > Commands), so CI and laptops can't drift apart.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: lint, tests, migrations, UI build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # Compose reads .env; the example has safe placeholders and points DATABASE_URL at the
+      # compose `db` service. No secrets needed: tests never call a real LLM.
+      - name: Create .env
+        run: cp .env.example .env
+
+      - name: Build images
+        run: docker compose build api
+
+      - name: make ci
+        run: make ci
+
+      - name: Production image builds
+        run: docker compose build app
+
+      - name: Stop containers
+        if: always()
+        run: docker compose --profile dev down -v
