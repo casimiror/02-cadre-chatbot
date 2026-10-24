@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
@@ -22,7 +23,12 @@ class Settings(BaseSettings):
 
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""
-    langfuse_host: str = "https://cloud.langfuse.com"
+    # LANGFUSE_BASE_URL is the SDK's current name; LANGFUSE_HOST still accepted. EU by default,
+    # US projects use https://us.cloud.langfuse.com.
+    langfuse_base_url: str = Field(
+        default="https://cloud.langfuse.com",
+        validation_alias=AliasChoices("LANGFUSE_BASE_URL", "LANGFUSE_HOST"),
+    )
 
     rate_limit_chat: str = "10/minute"
     max_input_chars: int = 2000
