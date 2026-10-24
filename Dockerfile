@@ -26,6 +26,5 @@ COPY backend/pyproject.toml backend/uv.lock ./
 RUN uv sync --locked --no-dev --no-install-project
 COPY backend/ ./
 COPY --from=frontend /frontend/dist /app/static
-ENV FRONTEND_DIST=/app/static
 EXPOSE 8000
 CMD ["sh", "-c", "fastapi run --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers"]

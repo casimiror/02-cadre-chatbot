@@ -35,3 +35,10 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.fastapi]
 entrypoint = "app.main:app"
+
+# Vercel (Root Directory = backend): FastAPI preset, app.main:app is auto-detected.
+[tool.vercel]
+entrypoint = "app.main:app"
+
+[tool.vercel.scripts]
+build = "sh vercel-build.sh"

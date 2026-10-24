@@ -10,7 +10,8 @@ Customer support chatbot for Cadre AI (take-home). One deployable unit: FastAPI 
 - **Frontend**: React + Vite + TypeScript in `frontend/`. Build output `frontend/dist` is served by FastAPI.
 - **DB**: Supabase used as plain Postgres via SQLAlchemy 2 + psycopg 3 (`DATABASE_URL`). Schema = ORM models in `app/db/models.py`; migrations with **Alembic** in `backend/alembic/`. The browser never talks to the DB.
 - **Observability**: Langfuse via `langfuse.langchain.CallbackHandler`, one trace per chat turn (`core/observability.trace_turn`: root span + `propagate_attributes`), `session_id = conversation_id`, `user_id = visitor_id` (anonymous UUID the browser keeps in localStorage, stored in `conversations.visitor_id` when the conversation is created; never an email or name).
-- **Runtime**: Docker. `Dockerfile` stages: `frontend` (node builds the UI), `dev` (python + dev deps, source bind-mounted), `runtime` (default, prod). Local Postgres 17 in compose stands in for Supabase.
+- **Deploy**: Vercel (FastAPI preset, Root Directory `backend/`) + Supabase. See README > Deploy.
+- **Runtime (local)**: Docker. `Dockerfile` stages: `frontend` (node builds the UI), `dev` (python + dev deps, source bind-mounted), `runtime` (default, prod). Local Postgres 17 in compose stands in for Supabase.
 - **LLM**: OpenRouter, default model `google/gemini-3.5-flash-lite` (`LLM_PROVIDER`, `LLM_MODEL` in `.env`).
 
 ## Commands — everything runs in Docker
@@ -78,7 +79,8 @@ api/routes  ->  services  ->  repositories  ->  db/daos  ->  Postgres (Supabase)
 - `app.frontend()` must be registered **after** all API routers. `check_dir="auto"` only skips the dist check when `FASTAPI_ENV=development` (set by `fastapi dev`); in tests/scripts set it yourself or build the UI first.
 - Run the CLI without a path (`fastapi dev` / `fastapi run`): the entrypoint is `[tool.fastapi]` in pyproject. `fastapi run app/main.py` fails with `No module named 'app'`.
 - `DATABASE_URL` uses host `db` (the compose service), so it only resolves inside compose containers; that is intended, nothing DB-related runs on the host.
-- Supabase: use the direct or session-pooler URL (port 5432). The transaction pooler (6543) breaks psycopg prepared statements.
+- Supabase: Vercel uses the transaction pooler (6543); `app/db/url.py` turns off psycopg prepared statements for it and `serverless` (`VERCEL=1`) switches to `NullPool`. Migrations use the session pooler (5432, `make migrate-supabase`): the direct host is IPv6-only. Never connect `app/db/session.py` or `alembic/env.py` without `database_config()`.
+- Vercel: Root Directory is `backend/`; `vercel-build.sh` builds the UI into `backend/static` (gitignored), the default `FRONTEND_DIST`. Rate limiting is per function instance.
 - langchain-core 1.x: `message.text` is a property, not a method.
 - slowapi needs `request: Request` in the endpoint signature or the limiter silently does nothing.
 - Langfuse reads keys from the `Langfuse(...)` client created in `core/observability.py`; `CallbackHandler()` reuses it.

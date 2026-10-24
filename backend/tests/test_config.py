@@ -15,3 +15,11 @@ def test_database_url_falls_back_to_vercel_integration_name(monkeypatch):
     assert Settings(_env_file=None).database_url == "postgres://u:p@h:6543/postgres"
     monkeypatch.setenv("DATABASE_URL", "postgresql://explicit@h:6543/postgres")
     assert Settings(_env_file=None).database_url == "postgresql://explicit@h:6543/postgres"
+
+
+def test_vercel_env_means_serverless(monkeypatch):
+    monkeypatch.delenv("SERVERLESS", raising=False)
+    monkeypatch.delenv("VERCEL", raising=False)
+    assert not Settings(_env_file=None).serverless
+    monkeypatch.setenv("VERCEL", "1")
+    assert Settings(_env_file=None).serverless

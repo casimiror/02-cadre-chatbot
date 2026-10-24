@@ -44,7 +44,7 @@ Evaluate 2 models on the scenario set before fixing the choice.
 ## Phases
 
 1. **Skeleton** — repo layout, CLAUDE.md, plan.md, uv/Vite/Docker, health endpoint. ✅ when `docker compose up` serves UI + `/api/health`.
-2. **Deploy early** — push image to host (Render/Railway/Fly), env vars set, public URL live with health check.
+2. **Deploy early** — Vercel (FastAPI preset) + Supabase (transaction pooler), env vars set, public URL live with health check. Steps in README > Deploy.
 3. **Data layer** — SQLAlchemy models, Alembic `0001` applied to Supabase, DAOs, repositories, tests.
 4. **Tools + agent** — ToolBuilder tools, AgentBuilder graph, system prompt, knowledge base content.
 5. **Guardrails + rate limit** — unit tests for each guardrail; 429 path verified.

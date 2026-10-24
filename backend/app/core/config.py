@@ -25,6 +25,8 @@ class Settings(BaseSettings):
         default="postgresql+psycopg://cadre_app:cadre_local_pw@db:5432/cadre_support",
         validation_alias=AliasChoices("DATABASE_URL", "POSTGRES_URL"),
     )
+    # Vercel sets VERCEL=1 in every deployment: no connection pool, flush traces every request.
+    serverless: bool = Field(default=False, validation_alias=AliasChoices("SERVERLESS", "VERCEL"))
 
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""
@@ -45,7 +47,8 @@ class Settings(BaseSettings):
     contact_email: str = "hello@gocadre.ai"
     portal_url: str = ""
 
-    frontend_dist: Path = BACKEND_DIR.parent / "frontend" / "dist"
+    # Built React app. The Docker image and the Vercel build both put it in backend/static.
+    frontend_dist: Path = BACKEND_DIR / "static"
 
     @property
     def langfuse_enabled(self) -> bool:
