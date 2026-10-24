@@ -14,8 +14,9 @@
 - **CI** (`.github/workflows/ci.yml`) runs `make ci` on every PR and push to `main`: lint, tests,
   migrations up/down on a fresh Postgres, `alembic check`, UI build, and the production image
   build. Same Docker commands as local, no secrets.
-- If the PR adds a migration, run `make migrate-supabase` **before merging**: merging deploys to
-  production and Vercel does not migrate.
+- **On merge to `main`** the `migrate-supabase` job applies pending migrations to Supabase (secret
+  `SUPABASE_DB_URL` in the GitHub `production` environment) while Vercel deploys. Migrations must
+  be backward compatible: add first, remove in a later release.
 
 ## Python (backend)
 

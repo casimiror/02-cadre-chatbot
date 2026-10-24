@@ -14,9 +14,12 @@ On every push Vercel clones the repo, enters the Root Directory `backend/` and:
 4. Deploys FastAPI as one Vercel Function (`vercel.json`: `maxDuration` 60 s, tests excluded) and
    promotes `app.frontend()`'s files to the CDN.
 
-Order for a change with a migration: CI green on the PR -> `make migrate-supabase` -> merge (Vercel
-deploys `main`). Migrations must stay backward compatible with the code still running until the
-deploy finishes (add columns/tables first, remove them in a later release).
+Migrations are automatic: on every push to `main`, GitHub Actions runs `check` and then the
+`migrate-supabase` job (`alembic upgrade head` through the session pooler, secret `SUPABASE_DB_URL`
+in the `production` environment). Vercel deploys `main` in parallel, so for a minute the new code
+may run against the old schema or the old code against the new one. Keep every migration backward
+compatible: add tables and nullable columns first, remove them in a later release.
+`make migrate-supabase` stays available for a manual run.
 
 A Build Command set in the dashboard or `vercel.json` overrides the `pyproject.toml` script: leave
 it empty or the UI is not built. Pushes to `main` deploy to production; other branches and PRs get

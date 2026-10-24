@@ -29,8 +29,9 @@ conversation delete.
   migration. Supabase exposes `public` over REST; RLS with no policies means only the backend (the
   table owner) can read or write.
 - Verify locally: `make migrate`, `make migrate-check`, `make migrate-roundtrip`.
-- Apply to Supabase: `make migrate-supabase` (uses `SUPABASE_DB_URL` from `.env`). Do it **before**
-  deploying code that needs the new schema; Vercel does not run migrations.
+- Supabase is migrated automatically when the PR merges (`migrate-supabase` job in GitHub
+  Actions). Write migrations backward compatible: Vercel deploys in parallel. Manual run:
+  `make migrate-supabase` (uses `SUPABASE_DB_URL` from `.env`).
 
 ## Local vs Supabase
 

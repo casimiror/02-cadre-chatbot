@@ -39,3 +39,38 @@ jobs:
       - name: Stop containers
         if: always()
         run: docker compose --profile dev down -v
+
+  # Merging to main deploys: Vercel builds main on its own, in parallel with this job. Migrations
+  # must therefore be backward compatible (add first, remove in a later release); see
+  # docs/deployment.md.
+  migrate-supabase:
+    name: migrate Supabase
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The secret lives in the `production` environment: only jobs on main can read it, PRs never.
+    environment: production
+    concurrency:
+      group: production-migrate
+      cancel-in-progress: false  # never interrupt a migration halfway
+    steps:
+      - uses: actions/checkout@v4
+
+      # Session pooler URL (port 5432, IPv4). GitHub masks the value in logs.
+      - name: Create .env
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          test -n "$SUPABASE_DB_URL" || { echo "::error::Set SUPABASE_DB_URL in the production environment"; exit 1; }
+          cp .env.example .env
+          echo "SUPABASE_DB_URL=$SUPABASE_DB_URL" >> .env
+
+      - name: Build image
+        run: docker compose build api
+
+      - name: alembic upgrade head
+        run: make migrate-supabase
+
+      - name: Current revision
+        run: docker compose run --rm --no-deps api sh -c 'DATABASE_URL="$SUPABASE_DB_URL" alembic current'
