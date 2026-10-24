@@ -56,3 +56,25 @@ class EscalationRow(TimestampedMixin, Base):
     email: Mapped[str] = mapped_column(Text, nullable=False)
     question: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, server_default="open")
+
+
+class ContactRequestRow(TimestampedMixin, Base):
+    """Strategy-call requests the bot sent for the user (same fields as cadre.ai/contact)."""
+
+    __tablename__ = "contact_requests"
+    __table_args__ = (
+        CheckConstraint(
+            "status in ('open', 'contacted', 'closed')", name="contact_requests_status_check"
+        ),
+    )
+
+    conversation_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False
+    )
+    first_name: Mapped[str] = mapped_column(Text, nullable=False)
+    last_name: Mapped[str] = mapped_column(Text, nullable=False)
+    company: Mapped[str] = mapped_column(Text, nullable=False)
+    email: Mapped[str] = mapped_column(Text, nullable=False)
+    phone: Mapped[str | None] = mapped_column(Text)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, server_default="open")

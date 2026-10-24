@@ -23,7 +23,7 @@ def build_support_agent(
             [
                 NoInventedPricesGuardrail(),
                 AllowedLinksGuardrail(
-                    [settings.booking_url, settings.portal_url, "https://cadreai.com"]
+                    [settings.booking_url, settings.portal_url, settings.website_url]
                 ),
             ]
         )

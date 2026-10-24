@@ -28,7 +28,10 @@ class Settings(BaseSettings):
     max_input_chars: int = 2000
     max_history_messages: int = 20
 
-    booking_url: str = ""
+    # Cadre has no self-serve calendar: a strategy call starts from the contact page or email.
+    website_url: str = "https://cadre.ai"
+    booking_url: str = "https://cadre.ai/contact"
+    contact_email: str = "hello@gocadre.ai"
     portal_url: str = ""
 
     frontend_dist: Path = BACKEND_DIR.parent / "frontend" / "dist"
