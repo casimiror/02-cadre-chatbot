@@ -122,7 +122,9 @@ turn). It sees only the last user message, not the conversation history.
 Setup in Langfuse (once per project):
 
 1. **Settings → LLM Connections → Add**: provider *OpenAI*, base URL `https://openrouter.ai/api/v1`,
-   your OpenRouter key.
+   your OpenRouter key. Turn off **Enable default models** (OpenAI's names, which OpenRouter
+   rejects) and add `google/gemini-3.8-flash` under **Custom models**: OpenRouter needs
+   `provider/model` names.
 2. **Evaluators → Set up evaluator → Create custom evaluator**, one per prompt: paste the prompt,
    model `google/gemini-3.8-flash`, score name as in the table, and describe the score as a number
    from 0 to 1 with a short reasoning.
