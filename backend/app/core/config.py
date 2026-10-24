@@ -18,9 +18,13 @@ class Settings(BaseSettings):
     llm_base_url: str | None = None
     llm_temperature: float = 0.2
 
-    # SQLAlchemy URL. Default: the docker compose `db` service; Supabase in deployed envs.
-    # Keep in sync with the credentials in docker-compose.yml.
-    database_url: str = "postgresql+psycopg://cadre_app:cadre_local_pw@db:5432/cadre_support"
+    # Any Postgres URL (normalized in app/db/url.py). Default: the docker compose `db` service;
+    # keep it in sync with docker-compose.yml. On Vercel: Supabase's transaction pooler, either as
+    # DATABASE_URL or as POSTGRES_URL (set by the Vercel Supabase integration).
+    database_url: str = Field(
+        default="postgresql+psycopg://cadre_app:cadre_local_pw@db:5432/cadre_support",
+        validation_alias=AliasChoices("DATABASE_URL", "POSTGRES_URL"),
+    )
 
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""

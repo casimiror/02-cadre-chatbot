@@ -6,7 +6,7 @@ API := $(COMPOSE) run --rm api
 API_NODB := $(COMPOSE) run --rm --no-deps api
 
 .PHONY: help env up dev down reset-db logs test lint format migrate migration migrate-check \
-	migrate-roundtrip migrate-sql ui-build psql check lock
+	migrate-roundtrip migrate-sql migrate-supabase ui-build psql check lock
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -54,6 +54,10 @@ migrate-roundtrip: ## Downgrade to base and upgrade again (local db only)
 
 migrate-sql: ## Print the migration SQL without a DB
 	$(API_NODB) alembic upgrade head --sql
+
+migrate-supabase: ## Apply migrations to Supabase (SUPABASE_DB_URL in .env: session pooler, port 5432)
+	$(API_NODB) sh -c 'test -n "$$SUPABASE_DB_URL" || { echo "set SUPABASE_DB_URL in .env"; exit 1; }; \
+		DATABASE_URL="$$SUPABASE_DB_URL" alembic upgrade head'
 
 ui-build: ## Build the React app (frontend/dist)
 	$(COMPOSE) run --rm --no-deps web sh -c "npm install && npm run build"
