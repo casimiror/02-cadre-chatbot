@@ -9,6 +9,7 @@ export interface ChatMessage {
 // Mirrors backend app/schemas/chat.py
 export interface ChatRequest {
   conversation_id: string | null;
+  visitor_id: string | null;
   message: string;
 }
 

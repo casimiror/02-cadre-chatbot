@@ -18,5 +18,5 @@ def chat(
     body: ChatRequest,
     service: Annotated[ChatService, Depends(get_chat_service)],
 ) -> ChatResponse:
-    result = service.handle_turn(body.conversation_id, body.message)
+    result = service.handle_turn(body.conversation_id, body.message, body.visitor_id)
     return ChatResponse(conversation_id=result.conversation_id, reply=result.reply)

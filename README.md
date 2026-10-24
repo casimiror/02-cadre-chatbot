@@ -18,7 +18,8 @@ when it can't answer.
 - **Data**: Supabase Postgres via SQLAlchemy DAOs + repositories; migrations with Alembic.
 - **Guardrails**: input length + prompt-injection heuristics; output blocks invented prices/URLs.
 - **Rate limiting**: slowapi per IP on `/api/chat`.
-- **Observability**: Langfuse, one trace per turn, session = conversation.
+- **Observability**: Langfuse, one trace per turn; session = conversation, user = anonymous visitor id
+  (a UUID the browser keeps across conversations, so the Users view groups a visitor's sessions).
 
 Details and conventions: [CLAUDE.md](CLAUDE.md). Scope, phases and trade-offs: [plan.md](plan.md).
 

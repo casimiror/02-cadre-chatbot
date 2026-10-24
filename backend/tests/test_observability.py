@@ -1,0 +1,91 @@
+from contextlib import contextmanager
+from uuid import uuid4
+
+from langchain_core.messages import AIMessage
+
+from app.core import observability
+from app.domain.models import Conversation
+from app.services.chat_service import ChatService
+
+
+class FakeSpan:
+    def __init__(self) -> None:
+        self.updates: list[dict] = []
+
+    def update(self, **kwargs) -> None:
+        self.updates.append(kwargs)
+
+
+class FakeLangfuse:
+    def __init__(self) -> None:
+        self.span = FakeSpan()
+        self.started: list[dict] = []
+
+    @contextmanager
+    def start_as_current_observation(self, **kwargs):
+        self.started.append(kwargs)
+        yield self.span
+
+
+def _record_propagation(monkeypatch) -> list[dict]:
+    calls: list[dict] = []
+
+    @contextmanager
+    def fake_propagate(**kwargs):
+        calls.append(kwargs)
+        yield
+
+    monkeypatch.setattr(observability, "propagate_attributes", fake_propagate)
+    return calls
+
+
+def test_trace_turn_is_noop_without_langfuse(monkeypatch):
+    monkeypatch.setattr(observability, "_client", None)
+    with observability.trace_turn("conv", "visitor", "hi") as trace:
+        assert trace.config == {"callbacks": []}
+        trace.finish("reply", None)  # must not fail
+
+
+def test_trace_turn_sets_user_and_session(monkeypatch):
+    client = FakeLangfuse()
+    monkeypatch.setattr(observability, "_client", client)
+    calls = _record_propagation(monkeypatch)
+
+    with observability.trace_turn("conv-1", "visitor-1", "hi") as trace:
+        assert len(trace.config["callbacks"]) == 1
+        trace.finish("hello", "price in output")
+
+    assert calls[0]["user_id"] == "visitor-1" and calls[0]["session_id"] == "conv-1"
+    assert client.started[0]["input"] == "hi"
+    expected = {"output": "hello", "metadata": {"blocked_by": "price in output"}}
+    assert client.span.updates == [expected]
+
+
+class FakeConversations:
+    def __init__(self) -> None:
+        self.conversation = Conversation(id=uuid4(), created_at="2026-10-24T00:00:00Z")
+
+    def get_or_create(self, conversation_id):
+        return self.conversation
+
+    def recent_messages(self, conversation_id, limit):
+        return []
+
+    def append(self, conversation_id, role, content):
+        pass
+
+
+class FakeAgent:
+    def invoke(self, state, config):
+        return {"messages": [*state["messages"], AIMessage("ok")], "blocked_by": None}
+
+
+def test_chat_service_passes_visitor_as_langfuse_user(monkeypatch):
+    monkeypatch.setattr(observability, "_client", FakeLangfuse())
+    calls = _record_propagation(monkeypatch)
+    conversations, visitor_id = FakeConversations(), uuid4()
+
+    ChatService(conversations, FakeAgent(), 10).handle_turn(None, "hi", visitor_id)
+
+    assert calls[0]["user_id"] == str(visitor_id)
+    assert calls[0]["session_id"] == str(conversations.conversation.id)

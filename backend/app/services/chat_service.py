@@ -4,7 +4,7 @@ from uuid import UUID
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from langgraph.graph.state import CompiledStateGraph
 
-from app.core.observability import trace_config
+from app.core.observability import trace_turn
 from app.domain.models import Message
 from app.repositories.conversation_repository import ConversationRepository
 
@@ -28,16 +28,20 @@ class ChatService:
         self._agent = agent
         self._history_limit = history_limit
 
-    def handle_turn(self, conversation_id: UUID | None, user_text: str) -> TurnResult:
+    def handle_turn(
+        self, conversation_id: UUID | None, user_text: str, visitor_id: UUID | None = None
+    ) -> TurnResult:
         conversation = self._conversations.get_or_create(conversation_id)
         history = self._conversations.recent_messages(conversation.id, self._history_limit)
 
-        config = trace_config(str(conversation.id))
-        config["configurable"] = {"conversation_id": str(conversation.id)}
-        state = self._agent.invoke(
-            {"messages": [*_to_langchain(history), HumanMessage(user_text)]}, config
-        )
-        reply = state["messages"][-1].text
+        user_id = str(visitor_id) if visitor_id else None
+        with trace_turn(str(conversation.id), user_id, user_text) as trace:
+            config = {**trace.config, "configurable": {"conversation_id": str(conversation.id)}}
+            state = self._agent.invoke(
+                {"messages": [*_to_langchain(history), HumanMessage(user_text)]}, config
+            )
+            reply = state["messages"][-1].text
+            trace.finish(reply, state.get("blocked_by"))
 
         # Persist only after a successful turn so a failed LLM call leaves no half-turn.
         self._conversations.append(conversation.id, "user", user_text)
